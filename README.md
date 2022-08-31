@@ -1,8 +1,8 @@
 # Eltag - file tagging with symlinks
 
 ## TODO:
-[ ] init
-[ ] tag
+[x] init
+[x] tag
 [ ] untag
 [ ] search
 [ ] check
@@ -19,7 +19,7 @@ Checks if the checksums match the files they point to (prints out wrong ones and
 
 ## tag
 
-Adds files to db and creates tag folders if necessary
+Adds files to db and creates tag folders if necessary. Tags are specified with a : first (eg. :music), to avoid this behavious (if filename starts with :) prepend the filename with a \ (in most shells it will need to be escaped to \\).
 
 ## untag
 
@@ -28,6 +28,10 @@ Deletes links from tag folders and empty tag folders if last item is removed
 ## search
 
 Uses fd/find to find files with given tags
+
+## show
+
+Show the path of db to be used
 
 # Data format
 
