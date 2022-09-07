@@ -73,6 +73,32 @@ add_tag() { #{{{
     fi
 } #}}}
 
+# Remove a tag from a file
+remove_tag() { #{{{
+    local DB; DB="$(find_db)"
+    local  TAG;  TAG="$1"
+    local FILE; FILE="$2"
+    [ -z "${TAG}"  ] && { logerr "No tag specified!";  exit 1; }
+    [ -z "${FILE}" ] && { logerr "No file specified!"; exit 1; }
+
+    [ -d "${DB}/${TAG}" ] || return 0 # Tag not in db, skip
+
+    local RELNAME; RELNAME="$(realpath --relative-to="${DB%.eltag}" "${FILE}")"
+    [ "$(printf "%s\n" "${RELNAME}" | cut -c1-3)" = "../" ] && { logerr "Can't go above db location!"; exit 1; }
+
+    local TAGPATH; TAGPATH="${TAG}/$(printf "%s\n" "${RELNAME}" | sha256sum | awk '{ print $1 }')"
+    if [ -L "${DB}/${TAGPATH}" ]; then
+        # Symbolic link exists
+        unlink "${DB}/${TAGPATH}"
+    else
+        # File not tagged
+        [ "${VERBOSE}" != 0 ] && loginfo "File: ${FILE} not tagged with: ${TAG}" || :
+    fi
+
+    # Try to remove dir (will get removed if empty)
+    rmdir "${DB}/${TAG}" || :
+} #}}}
+
 # Split command arguments into files and tags
 parse_tags_files() { # {{{
     # Arguments: `file` `:tag` `\:file`
@@ -164,16 +190,43 @@ add_tags() { #{{{
     rm "${TAGS_FIFO}" "${FILES_FIFO}"
 } #}}}
 
+# Remove tags from files
+remove_tags() { #{{{
+    [ -z "$1" ] && { logerr "No arguments!"; exit 1; }
+
+    local TAG_FILE_INFO; TAG_FILE_INFO="$(parse_tags_files "$@")"
+    local  TAGS;  TAGS="$(printf "%s\n" "${TAG_FILE_INFO}" | sed '/^F: /d;s/^T: //')"
+    local FILES; FILES="$(printf "%s\n" "${TAG_FILE_INFO}" | sed '/^T: /d;s/^F: //')"
+
+    # Loop over files and each tag
+    local  TAGS_FIFO;  TAGS_FIFO="$(mktmpfifo)"
+    local FILES_FIFO; FILES_FIFO="$(mktmpfifo)"
+
+    printf "%s\n" "${FILES}" >"${FILES_FIFO}" &
+    while IFS= read -r FILE; do
+
+        printf "%s\n" "${TAGS}" >"${TAGS_FIFO}" &
+        while IFS= read -r TAG; do
+
+            remove_tag "${TAG}" "${FILE}"
+            [ "${VERBOSE}" != "0" ] && loginfo "Removing: ${TAG} from: ${FILE}" || :
+
+        done <"${TAGS_FIFO}"
+    done <"${FILES_FIFO}"
+
+    rm "${TAGS_FIFO}" "${FILES_FIFO}"
+} #}}}
+
 main() {
     [ "$1" = "-v" ] && { VERBOSE="1"; shift 1; }
     [ "$1" ] || exit 1
 
     case "$1" in
          "init") init ;;
-          "tag") shift 1; add_tags "$@" ;;
          "show") find_db ;;
         "parse") shift 1; parse_tags_files "$@" >/dev/null ;;
-        # "untag") remove_tag ;;
+          "tag") shift 1; add_tags "$@" ;;
+        "untag") shift 1; remove_tags "$@" ;;
         #"search") ;;
         # "check") check_tags ;;
     esac
