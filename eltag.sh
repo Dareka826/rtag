@@ -64,10 +64,13 @@ add_tag() { #{{{
     [ "$(printf "%s\n" "${LNAME}" | cut -c1-3)" = "../" ] && { logerr "Can't go above db location!"; exit 1; }
 
     local TAGPATH; TAGPATH="${TAG}/$(printf "%s\n" "${LNAME}" | sha256sum | awk '{ print $1 }')"
-    [ -f "${DB}/${TAGPATH}" ] || {
+    if [ -L "${DB}/${TAGPATH}" ]; then
+        # Symbolic link exists
+        [ "${VERBOSE}" != 0 ] && loginfo "File already tagged"
+    else
         # File not tagged with this tag yet, so tag it
         ln -s "../../${LNAME}" "${DB}/${TAGPATH}"
-    }
+    fi
 } #}}}
 
 # Split command arguments into files and tags
