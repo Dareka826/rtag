@@ -112,6 +112,7 @@ parse_tags_files() { # {{{
     local  TAGS_SUPPLIED;  TAGS_SUPPLIED="0"
     local FILES_SUPPLIED; FILES_SUPPLIED="0"
 
+    local arg
     for arg in "$@"; do
         # Check the type of arg
         if [ "$(printf "%s\n" "${arg}" | cut -c1)" = ":" ]; then
@@ -179,6 +180,7 @@ add_tags() { #{{{
     local  TAGS_FIFO;  TAGS_FIFO="$(mktmpfifo)"
     local FILES_FIFO; FILES_FIFO="$(mktmpfifo)"
 
+    local FILE TAG
     printf "%s\n" "${FILES}" >"${FILES_FIFO}" &
     while IFS= read -r FILE; do
 
@@ -206,6 +208,7 @@ remove_tags() { #{{{
     local  TAGS_FIFO;  TAGS_FIFO="$(mktmpfifo)"
     local FILES_FIFO; FILES_FIFO="$(mktmpfifo)"
 
+    local FILE TAG
     printf "%s\n" "${FILES}" >"${FILES_FIFO}" &
     while IFS= read -r FILE; do
 
