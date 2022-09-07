@@ -1,5 +1,7 @@
 #!/bin/sh
 set -eu
+IFS="$(printf "\t\n")"
+
 WORKDIR="$(pwd)"
 VERBOSE="0"
 
