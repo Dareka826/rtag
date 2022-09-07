@@ -2,10 +2,10 @@
 
 ## TODO:
 [x] init
+[x] show
 [x] tag
 [ ] untag
 [ ] search
-[ ] check
 
 # Subcommands:
 
@@ -13,26 +13,29 @@
 
 Creates the .eltag directory used to store tag info
 
-## check
+## show
 
-Checks if the checksums match the files they point to (prints out wrong ones and broken symlinks)
+Show the path of db used by commands
 
 ## tag
 
-Adds files to db and creates tag folders if necessary. Tags are specified with a : first (eg. :music), to avoid this behavious (if filename starts with :) prepend the filename with a \ (in most shells it will need to be escaped to \\).
+Adds files to db and creates tag folders if necessary.
 
 ## untag
 
-Deletes links from tag folders and empty tag folders if last item is removed
+Deletes links from tag folders and empty tag folders if the last item is removed.
 
 ## search
 
-Uses fd/find to find files with given tags
+Uses `fd` (or `find` if not available) to find files with given tags.
 
-## show
+# Tag specification
 
-Show the path of db to be used
+Tags are specified with a `:` (eg. `:music`).
+To escape this behaviour (if the filename starts with a `:`) prepend the argument with a `\`.
 
 # Data format
 
-A directory called .eltag stores folders with the names of tags. The tag folders store symbolic links to files whose names are checksummed relative destinations of the links (to avoid issues with filename length).
+A directory called `.eltag` stores folders with the names of tags.
+Each tag folder stores relative symbolic links to files.
+The filenames are the checksummed destinations of the links (to avoid issues with filename length).
