@@ -42,9 +42,6 @@ find_db() { #{{{
         fi
     done
 
-    # Probably not necessary
-    [ "${FOUND}" = "0" ] && exit 1
-
     # Return the db path
     printf "%s\n" "${CHECKDIR}/.eltag"
 } #}}}
