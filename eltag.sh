@@ -22,11 +22,10 @@ mktmpfifo() {
     printf "%s\n" "${FIFO}"
 }
 
-validate_tag_name() {
-    local TAG; TAG="$1"
-
-    printf "%s" "${TAG}" | tr '\n' '/' | grep -E '[/]' >/dev/null && {
-        logerr "Illegal char in tagname: ${TAG}"
+# Detect control characters
+validate_name() {
+    [ "$(printf "%s" "$1" | tr -d '[:cntrl:]')" != "$1" ] && {
+        logerr "Illegal char in: \"$1\""
         exit 1
     } || :
 }
@@ -311,6 +310,11 @@ search_tags() { # {{{
 main() {
     [ "$1" = "-v" ] && { VERBOSE="1"; shift 1; }
     [ "$1" ] || exit 1
+
+    # Abort on any control characters in filenames/tags
+    local arg
+    for arg in "$@"; do validate_name "${arg}"; done
+    # Now we can guarantee that linewise operations will work
 
     case "$1" in
           "init") init ;;
