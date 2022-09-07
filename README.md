@@ -4,7 +4,7 @@
 - [x] init
 - [x] show
 - [x] tag
-- [ ] untag
+- [x] untag
 - [ ] search
 
 # Subcommands:
