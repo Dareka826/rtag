@@ -3,12 +3,12 @@ WORKDIR="$(pwd)"
 
 # Utility functions
 logerr() {
-    printf "%s\n" "$*" >&2
+    printf "[E]: %s\n" "$*" >&2
 }
 
 # Create an eltag folder
 init() {
-    [ -d "${WORKDIR}/.eltag" ] && { logerr "[E]: DB already exists!"; exit 1; }
+    [ -d "${WORKDIR}/.eltag" ] && { logerr "DB already exists!"; exit 1; }
     mkdir "${WORKDIR}/.eltag"
 }
 
@@ -22,7 +22,7 @@ find_db() { #{{{
             FOUND="1"
         else
             # If no db found even on root, just exit
-            [ -z "${CHECKDIR}" ] && { logerr "[E]: No eltag db found!"; exit 1; }
+            [ -z "${CHECKDIR}" ] && { logerr "No eltag db found!"; exit 1; }
 
             # Traverse up
             CHECKDIR="${CHECKDIR%/*}"
@@ -40,14 +40,14 @@ find_db() { #{{{
 add_tag() { #{{{
     local DB; DB="$(find_db)"
     TAG="$1"; FILE="$2"
-    [ -z "${TAG}"  ] && { logerr "[E]: No tag specified!";  exit 1; }
-    [ -z "${FILE}" ] && { logerr "[E]: No file specified!"; exit 1; }
+    [ -z "${TAG}"  ] && { logerr "No tag specified!";  exit 1; }
+    [ -z "${FILE}" ] && { logerr "No file specified!"; exit 1; }
 
     [ -d "${DB}/${TAG}" ] || \
         mkdir "${DB}/${TAG}"
 
     local LNAME; LNAME="$(realpath --relative-to="${WORKDIR}" "${FILE}")"
-    [ "$(printf "%s\n" "${LNAME}" | cut -c1-3)" = "../" ] && { logerr "[E]: Can't go above db location!"; exit 1; }
+    [ "$(printf "%s\n" "${LNAME}" | cut -c1-3)" = "../" ] && { logerr "Can't go above db location!"; exit 1; }
 
     local TAGPATH; TAGPATH="${TAG}/$(printf "%s\n" "${LNAME}" | sha256sum | awk '{ print $1 }')"
     [ -f "${DB}/${TAGPATH}" ] || {
@@ -58,11 +58,12 @@ add_tag() { #{{{
 
 parse_tags_files() {
     # TODO: Move functionality from add_tags here to reuse for untagging
+    :
 }
 
 # Parse tags and files
 add_tags() { #{{{
-    [ -z "$1" ] && { logerr "[E]: No arguments!"; exit 1; }
+    [ -z "$1" ] && { logerr "No arguments!"; exit 1; }
 
     local  TAGS_FIFO;  TAGS_FIFO="$(mktemp -u)"
     local FILES_FIFO; FILES_FIFO="$(mktemp -u)"
@@ -95,8 +96,8 @@ add_tags() { #{{{
         fi
     done
 
-    [  "${TAGS_SUPPLIED}" = "0" ] && { logerr "[E]: No tags supplied!";  exit 1; }
-    [ "${FILES_SUPPLIED}" = "0" ] && { logerr "[E]: No files supplied!"; exit 1; }
+    [  "${TAGS_SUPPLIED}" = "0" ] && { logerr "No tags supplied!";  exit 1; }
+    [ "${FILES_SUPPLIED}" = "0" ] && { logerr "No files supplied!"; exit 1; }
 
     local  TAGS;  TAGS="$(cat  "${TAGS_FIFO}")"
     local FILES; FILES="$(cat "${FILES_FIFO}")"
