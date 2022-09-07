@@ -1,6 +1,7 @@
 #!/bin/sh
 set -eu
 WORKDIR="$(pwd)"
+VERBOSE="0"
 
 # Utility functions {{{
 log() {
@@ -69,19 +70,15 @@ add_tag() { #{{{
     }
 } #}}}
 
-parse_tags_files() {
-    # TODO: Move functionality from add_tags here to reuse for untagging
-    :
-}
-
-# Parse tags and files
-add_tags() { #{{{
+# Split command arguments into files and tags
+parse_tags_files() { # {{{
+    # Arguments: `file` `:tag` `\:file`
     [ -z "$1" ] && { logerr "No arguments!"; exit 1; }
 
     local  TAGS_FIFO;  TAGS_FIFO="$(mktmpfifo)"
     local FILES_FIFO; FILES_FIFO="$(mktmpfifo)"
 
-    local  TAGS_SUPPLIED; TAGS_SUPPLIED="0"
+    local  TAGS_SUPPLIED;  TAGS_SUPPLIED="0"
     local FILES_SUPPLIED; FILES_SUPPLIED="0"
 
     for arg in "$@"; do
@@ -89,19 +86,20 @@ add_tags() { #{{{
         if [ "$(printf "%s\n" "${arg}" | cut -c1)" = ":" ]; then
             # Tag
             TAGS_SUPPLIED="1"
-
             local TAG; TAG="$(printf "%s\n" "${arg}" | cut -c2-)"
-            printf "%s\n" "${TAG}" >"${TAGS_FIFO}" &
+
+            printf "T: %s\n" "${TAG}" >"${TAGS_FIFO}" &
+
         else
             # File
             FILES_SUPPLIED="1"
-
             local FILE; FILE="${arg}"
+
             # Remove prefix if escaping a filename
             [ "$(printf "%s\n" "${FILE}" | cut -c1,2)" = '\:' ] && \
-                FILE="$(printf "%s\n" "${FILE}" | cut -c3-)"
+                FILE="$(printf "%s\n" "${FILE}" | cut -c2-)"
 
-            printf "%s\n" "${FILE}" >"${FILES_FIFO}" &
+            printf "F: %s\n" "${FILE}" >"${FILES_FIFO}" &
         fi
     done
 
@@ -112,27 +110,51 @@ add_tags() { #{{{
     local FILES; FILES="$(cat "${FILES_FIFO}")"
     rm "${TAGS_FIFO}" "${FILES_FIFO}"
 
-    # Loop over files and tags
-    local  TAGS_READ_FIFO;  TAGS_READ_FIFO="$(mktmpfifo)"
-    local FILES_READ_FIFO; FILES_READ_FIFO="$(mktmpfifo)"
-    printf "%s\n" "${TAGS}"  >"${TAGS_READ_FIFO}"  &
+    # Log the results
+    log "Using tags:"
+    log "$(printf "%s\n"  "${TAGS}" | sed 's/^T: /  /')"
+    log "On files:"
+    log "$(printf "%s\n" "${FILES}" | sed 's/^F: /  /')"
 
-    while IFS= read -r TAG; do
-        printf "%s\n" "${FILES}" >"${FILES_READ_FIFO}" &
+    # Return
+    printf "%s\n" "${TAGS}"
+    printf "%s\n" "${FILES}"
+} # }}}
 
-        while IFS= read -r FILE; do
+# Parse tags and files
+add_tags() { #{{{
+    [ -z "$1" ] && { logerr "No arguments!"; exit 1; }
+
+    local TAG_FILE_INFO; TAG_FILE_INFO="$(parse_tags_files "$@")"
+    local  TAGS;  TAGS="$(printf "%s\n" "${TAG_FILE_INFO}" | sed '/^F: /d;s/^T: //')"
+    local FILES; FILES="$(printf "%s\n" "${TAG_FILE_INFO}" | sed '/^T: /d;s/^F: //')"
+
+    # Loop over files and each tag
+    local  TAGS_FIFO;  TAGS_FIFO="$(mktmpfifo)"
+    local FILES_FIFO; FILES_FIFO="$(mktmpfifo)"
+
+    printf "%s\n" "${FILES}" >"${FILES_FIFO}" &
+    while IFS= read -r FILE; do
+
+        printf "%s\n" "${TAGS}" >"${TAGS_FIFO}" &
+        while IFS= read -r TAG; do
+
             add_tag "${TAG}" "${FILE}"
-        done <"${FILES_READ_FIFO}"
-    done <"${TAGS_READ_FIFO}"
+            [ "${VERBOSE}" != "0" ] && loginfo "Tagging: ${FILE} with: ${TAG}"
+
+        done <"${TAGS_FIFO}"
+    done <"${FILES_FIFO}"
 } #}}}
 
 main() {
+    [ "$1" = "-v" ] && { VERBOSE="1"; shift 1; }
     [ "$1" ] || exit 1
 
     case "$1" in
-          "init") init ;;
-           "tag") shift 1; add_tags "$@" ;;
-          "show") find_db ;;
+         "init") init ;;
+          "tag") shift 1; add_tags "$@" ;;
+         "show") find_db ;;
+        "parse") shift 1; parse_tags_files "$@" >/dev/null ;;
         # "untag") remove_tag ;;
         #"search") ;;
         # "check") check_tags ;;
