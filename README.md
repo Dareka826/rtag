@@ -1,11 +1,11 @@
 # Eltag - file tagging with symlinks
 
 ## TODO:
-[x] init
-[x] show
-[x] tag
-[ ] untag
-[ ] search
+- [x] init
+- [x] show
+- [x] tag
+- [ ] untag
+- [ ] search
 
 # Subcommands:
 
