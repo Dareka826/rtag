@@ -55,8 +55,8 @@ add_tag() { #{{{
     local DB; DB="$(find_db)"
     local  TAG;  TAG="$1"
     local FILE; FILE="$2"
-    [ -z "${TAG}"  ] && { logerr "No tag specified!";  exit 1; }
-    [ -z "${FILE}" ] && { logerr "No file specified!"; exit 1; }
+    [ -z "${TAG}"  ] && { logerr "add_tag(): No tag specified!";  exit 1; }
+    [ -z "${FILE}" ] && { logerr "add_tag(): No file specified!"; exit 1; }
 
     [ -d "${DB}/${TAG}" ] || mkdir "${DB}/${TAG}"
 
@@ -78,8 +78,8 @@ remove_tag() { #{{{
     local DB; DB="$(find_db)"
     local  TAG;  TAG="$1"
     local FILE; FILE="$2"
-    [ -z "${TAG}"  ] && { logerr "No tag specified!";  exit 1; }
-    [ -z "${FILE}" ] && { logerr "No file specified!"; exit 1; }
+    [ -z "${TAG}"  ] && { logerr "remove_tag(): No tag specified!";  exit 1; }
+    [ -z "${FILE}" ] && { logerr "remove_tag(): No file specified!"; exit 1; }
 
     [ -d "${DB}/${TAG}" ] || return 0 # Tag not in db, skip
 
@@ -102,7 +102,7 @@ remove_tag() { #{{{
 # Split command arguments into files and tags
 parse_tags_files() { # {{{
     # Arguments: `file` `:tag` `\:file`
-    [ -z "$1" ] && { logerr "No arguments!"; exit 1; }
+    [ -z "$1" ] && { logerr "parse_tags_files(): No arguments!"; exit 1; }
 
     local  TAGS_FIFO;  TAGS_FIFO="$(mktmpfifo)"
     local FILES_FIFO; FILES_FIFO="$(mktmpfifo)"
