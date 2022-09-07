@@ -106,8 +106,21 @@ parse_tags_files() { # {{{
         fi
     done
 
-    [  "${TAGS_SUPPLIED}" = "0" ] && { logerr "No tags supplied!";  exit 1; }
-    [ "${FILES_SUPPLIED}" = "0" ] && { logerr "No files supplied!"; exit 1; }
+    if [ "${TAGS_SUPPLIED}" = "0" ] || [ "${FILES_SUPPLIED}" = 0 ]; then
+        if [  "${TAGS_SUPPLIED}" = "0" ]; then
+            logerr "No tags supplied!"
+        else
+            cat "${TAGS_FIFO}" >/dev/null
+        fi
+        if [ "${FILES_SUPPLIED}" = "0" ]; then
+            logerr "No files supplied!"
+        else
+            cat "${FILES_FIFO}" >/dev/null
+        fi
+
+        rm "${TAGS_FIFO}" "${FILES_FIFO}"
+        exit 1
+    fi
 
     local  TAGS;  TAGS="$(cat  "${TAGS_FIFO}")"
     local FILES; FILES="$(cat "${FILES_FIFO}")"
