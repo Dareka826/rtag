@@ -4,6 +4,9 @@ WORKDIR="$(pwd)"
 
 # Utility functions {{{
 log() {
+    printf "%s\n" "$*" >&2
+}
+loginfo() {
     printf "[I]: %s\n" "$*" >&2
 }
 logerr() {
