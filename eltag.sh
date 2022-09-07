@@ -237,18 +237,89 @@ remove_tags() { #{{{
     rm "${TAGS_FIFO}" "${FILES_FIFO}"
 } #}}}
 
+# Print database in parsable format
+dump() { # {{{
+    local DB; DB="$(find_db)"
+    local file
+
+    find "${DB}" -type l -exec basename '{}' \; | sort | uniq \
+        | while read -r file; do
+            printf "%s/" "${file}"
+            find "${DB}" -name "${file}" | sed 's/.*\.eltag\///;s/^\(.*\)\/\([0-9a-f]\+\)$/\1/' | tr '\n' '/'
+            printf "\n"
+        done
+} # }}}
+
+# Find files by tags
+search_tags() { # {{{
+    # Arguments: 'tag' '-tag' '\-tag'
+    local INCLUDE_FIFO; INCLUDE_FIFO="$(mktmpfifo)"
+    local EXCLUDE_FIFO; EXCLUDE_FIFO="$(mktmpfifo)"
+
+    local INCLUDE_TAGS_EXIST; INCLUDE_TAGS_EXIST="0"
+    local EXCLUDE_TAGS_EXIST; EXCLUDE_TAGS_EXIST="0"
+
+    local tag
+    for tag in "$@"; do
+        if [ "$(printf "%s\n" "${tag}" | cut -c1)" = '-' ]; then
+            # Exclude
+            printf "%s\n" "${tag}" | cut -c2- >"${EXCLUDE_FIFO}" &
+            EXCLUDE_TAGS_EXIST="1"
+        else
+            [ "$(printf "%s\n" "${tag}" | cut -c1,2)" = '\-' ] && \
+                tag="$(printf "%s\n" "${tag}" | cut -c2-)"
+
+            # Include
+            printf "%s\n" "${tag}" >"${INCLUDE_FIFO}" &
+            INCLUDE_TAGS_EXIST="1"
+        fi
+    done
+
+    [ "${INCLUDE_TAGS_EXIST}" = "0" ] && printf "\n" >"${INCLUDE_FIFO}" &
+    [ "${EXCLUDE_TAGS_EXIST}" = "0" ] && printf "\n" >"${EXCLUDE_FIFO}" &
+
+    local INCLUDE_TAGS; INCLUDE_TAGS="$(cat "${INCLUDE_FIFO}")"
+    local EXCLUDE_TAGS; EXCLUDE_TAGS="$(cat "${EXCLUDE_FIFO}")"
+    rm "${INCLUDE_FIFO}" "${EXCLUDE_FIFO}"
+
+    # Filter based on tags
+    log "Included tags:"
+    log "$(printf "%s\n" "${INCLUDE_TAGS}" | sed 's/^\(.*\)$/  \1/')"
+    log "Excluded tags:"
+    log "$(printf "%s\n" "${EXCLUDE_TAGS}" | sed 's/^\(.*\)$/  \1/')"
+
+    local DB_DUMP; DB_DUMP="$(dump)"
+
+    local TAG
+    local FILTER_FIFO; FILTER_FIFO="$(mktmpfifo)"
+
+    printf "%s\n" "${INCLUDE_TAGS}" >"${FILTER_FIFO}" &
+    while IFS= read -r TAG; do
+        DB_DUMP="$(printf "%s\n" "${DB_DUMP}" | grep "/${TAG}/")"
+    done <"${FILTER_FIFO}"
+
+    printf "%s\n" "${EXCLUDE_TAGS}" >"${FILTER_FIFO}" &
+    while IFS= read -r TAG; do
+        DB_DUMP="$(printf "%s\n" "${DB_DUMP}" | grep -v "/${TAG}/")"
+    done <"${FILTER_FIFO}"
+
+    rm "${FILTER_FIFO}"
+
+    printf "%s\n" "${DB_DUMP}" | grep -Eo '^[0-9a-f]+'
+} # }}}
+
 main() {
     [ "$1" = "-v" ] && { VERBOSE="1"; shift 1; }
     [ "$1" ] || exit 1
 
     case "$1" in
-         "init") init ;;
-         "show") find_db ;;
-        "parse") shift 1; parse_tags_files "$@" >/dev/null ;;
-          "tag") shift 1; add_tags "$@" ;;
-        "untag") shift 1; remove_tags "$@" ;;
-        #"search") ;;
-        # "check") check_tags ;;
+          "init") init ;;
+          "show") find_db ;;
+         "parse") shift 1; parse_tags_files "$@" >/dev/null ;;
+           "tag") shift 1; add_tags "$@" ;;
+         "untag") shift 1; remove_tags "$@" ;;
+          "dump") dump ;;
+        "search") shift 1; search_tags "$@" ;;
     esac
     exit 0
 }
