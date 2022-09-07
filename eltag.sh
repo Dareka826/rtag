@@ -124,7 +124,7 @@ parse_tags_files() { # {{{
     printf "%s\n" "${FILES}"
 } # }}}
 
-# Parse tags and files
+# Add tags to files
 add_tags() { #{{{
     [ -z "$1" ] && { logerr "No arguments!"; exit 1; }
 
