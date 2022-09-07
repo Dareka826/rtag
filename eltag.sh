@@ -211,7 +211,7 @@ remove_tags() { #{{{
         while IFS= read -r TAG; do
 
             remove_tag "${TAG}" "${FILE}"
-            [ "${VERBOSE}" != "0" ] && loginfo "Removing: ${TAG} from: ${FILE}" || :
+            [ "${VERBOSE}" != "0" ] && loginfo "Untagging: ${FILE} with: ${TAG}" || :
 
         done <"${TAGS_FIFO}"
     done <"${FILES_FIFO}"
