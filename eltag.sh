@@ -147,6 +147,8 @@ add_tags() { #{{{
 
         done <"${TAGS_FIFO}"
     done <"${FILES_FIFO}"
+
+    rm "${TAGS_FIFO}" "${FILES_FIFO}"
 } #}}}
 
 main() {
