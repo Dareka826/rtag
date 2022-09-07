@@ -66,7 +66,7 @@ add_tag() { #{{{
     local TAGPATH; TAGPATH="${TAG}/$(printf "%s\n" "${LNAME}" | sha256sum | awk '{ print $1 }')"
     if [ -L "${DB}/${TAGPATH}" ]; then
         # Symbolic link exists
-        [ "${VERBOSE}" != 0 ] && loginfo "File already tagged"
+        [ "${VERBOSE}" != 0 ] && loginfo "File already tagged" || :
     else
         # File not tagged with this tag yet, so tag it
         ln -s "../../${LNAME}" "${DB}/${TAGPATH}"
@@ -143,7 +143,7 @@ add_tags() { #{{{
         while IFS= read -r TAG; do
 
             add_tag "${TAG}" "${FILE}"
-            [ "${VERBOSE}" != "0" ] && loginfo "Tagging: ${FILE} with: ${TAG}"
+            [ "${VERBOSE}" != "0" ] && loginfo "Tagging: ${FILE} with: ${TAG}" || :
 
         done <"${TAGS_FIFO}"
     done <"${FILES_FIFO}"
