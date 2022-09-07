@@ -9,6 +9,14 @@ log() {
 logerr() {
     printf "[E]: %s\n" "$*" >&2
 }
+
+mktmpfifo() {
+    local FIFO; FIFO="$(mktemp -u)"
+    [ -e "${FIFO}" ] && rm -f "${FIFO}"
+    mkfifo -m0700 "${FIFO}"
+
+    printf "%s\n" "${FIFO}"
+}
 # }}}
 
 # Create an eltag folder
@@ -70,10 +78,8 @@ parse_tags_files() {
 add_tags() { #{{{
     [ -z "$1" ] && { logerr "No arguments!"; exit 1; }
 
-    local  TAGS_FIFO;  TAGS_FIFO="$(mktemp -u)"
-    local FILES_FIFO; FILES_FIFO="$(mktemp -u)"
-    mkfifo -m0700  "${TAGS_FIFO}"
-    mkfifo -m0700 "${FILES_FIFO}"
+    local  TAGS_FIFO;  TAGS_FIFO="$(mktmpfifo)"
+    local FILES_FIFO; FILES_FIFO="$(mktmpfifo)"
 
     local  TAGS_SUPPLIED; TAGS_SUPPLIED="0"
     local FILES_SUPPLIED; FILES_SUPPLIED="0"
@@ -107,17 +113,17 @@ add_tags() { #{{{
     rm "${TAGS_FIFO}" "${FILES_FIFO}"
 
     # Loop over files and tags
-    mkfifo -m0700  "${TAGS_FIFO}"
-    mkfifo -m0700 "${FILES_FIFO}"
-    printf "%s\n" "${TAGS}"  >"${TAGS_FIFO}"  &
+    local  TAGS_READ_FIFO;  TAGS_READ_FIFO="$(mktmpfifo)"
+    local FILES_READ_FIFO; FILES_READ_FIFO="$(mktmpfifo)"
+    printf "%s\n" "${TAGS}"  >"${TAGS_READ_FIFO}"  &
 
     while IFS= read -r TAG; do
-        printf "%s\n" "${FILES}" >"${FILES_FIFO}" &
+        printf "%s\n" "${FILES}" >"${FILES_READ_FIFO}" &
 
         while IFS= read -r FILE; do
             add_tag "${TAG}" "${FILE}"
-        done <"${FILES_FIFO}"
-    done <"${TAGS_FIFO}"
+        done <"${FILES_READ_FIFO}"
+    done <"${TAGS_READ_FIFO}"
 } #}}}
 
 main() {
