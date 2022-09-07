@@ -53,12 +53,12 @@ find_db() { #{{{
 # Add a file with a tag to db
 add_tag() { #{{{
     local DB; DB="$(find_db)"
-    TAG="$1"; FILE="$2"
+    local  TAG;  TAG="$1"
+    local FILE; FILE="$2"
     [ -z "${TAG}"  ] && { logerr "No tag specified!";  exit 1; }
     [ -z "${FILE}" ] && { logerr "No file specified!"; exit 1; }
 
-    [ -d "${DB}/${TAG}" ] || \
-        mkdir "${DB}/${TAG}"
+    [ -d "${DB}/${TAG}" ] || mkdir "${DB}/${TAG}"
 
     local LNAME; LNAME="$(realpath --relative-to="${WORKDIR}" "${FILE}")"
     [ "$(printf "%s\n" "${LNAME}" | cut -c1-3)" = "../" ] && { logerr "Can't go above db location!"; exit 1; }
