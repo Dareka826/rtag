@@ -21,6 +21,15 @@ mktmpfifo() {
 
     printf "%s\n" "${FIFO}"
 }
+
+validate_tag_name() {
+    local TAG; TAG="$1"
+
+    printf "%s" "${TAG}" | tr '\n' '/' | grep -E '[/]' >/dev/null && {
+        logerr "Illegal char in tagname: ${TAG}"
+        exit 1
+    } || :
+}
 # }}}
 
 # Create an eltag folder
@@ -58,6 +67,8 @@ add_tag() { #{{{
     [ -z "${TAG}"  ] && { logerr "add_tag(): No tag specified!";  exit 1; }
     [ -z "${FILE}" ] && { logerr "add_tag(): No file specified!"; exit 1; }
 
+    validate_tag_name "${TAG}"
+
     [ -d "${DB}/${TAG}" ] || mkdir "${DB}/${TAG}"
 
     local RELNAME; RELNAME="$(realpath --relative-to="${DB%.eltag}" "${FILE}")"
@@ -81,6 +92,8 @@ remove_tag() { #{{{
     local FILE; FILE="$2"
     [ -z "${TAG}"  ] && { logerr "remove_tag(): No tag specified!";  exit 1; }
     [ -z "${FILE}" ] && { logerr "remove_tag(): No file specified!"; exit 1; }
+
+    validate_tag_name "${TAG}"
 
     [ -d "${DB}/${TAG}" ] || return 0 # Tag not in db, skip
 
