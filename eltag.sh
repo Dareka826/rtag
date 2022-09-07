@@ -76,16 +76,14 @@ add_tags() { #{{{
 
     for arg in "$@"; do
         # Check the type of arg
-        local TYPE; TYPE=""
-
         if [ "$(printf "%s\n" "${arg}" | cut -c1)" = ":" ]; then
-            TYPE="tag"
+            # Tag
             TAGS_SUPPLIED="1"
 
             local TAG; TAG="$(printf "%s\n" "${arg}" | cut -c2-)"
             printf "%s\n" "${TAG}" >"${TAGS_FIFO}" &
         else
-            TYPE="file"
+            # File
             FILES_SUPPLIED="1"
 
             local FILE; FILE="${arg}"
