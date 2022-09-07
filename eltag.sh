@@ -135,11 +135,13 @@ parse_tags_files() { # {{{
     done
 
     if [ "${TAGS_SUPPLIED}" = "0" ] || [ "${FILES_SUPPLIED}" = 0 ]; then
+        # Either tags of files not supplied, cleanup
         if [  "${TAGS_SUPPLIED}" = "0" ]; then
             logerr "No tags supplied!"
         else
             cat "${TAGS_FIFO}" >/dev/null
         fi
+
         if [ "${FILES_SUPPLIED}" = "0" ]; then
             logerr "No files supplied!"
         else
