@@ -4,6 +4,10 @@ WORKDIR="$(pwd)"
 VERBOSE="0"
 
 # Utility functions {{{
+sprint() {
+    printf "%s\n" "$*"
+}
+
 log() {
     printf "%s\n" "$*" >&2
 }
@@ -19,7 +23,7 @@ mktmpfifo() {
     [ -e "${FIFO}" ] && rm -f "${FIFO}"
     mkfifo -m0700 "${FIFO}"
 
-    printf "%s\n" "${FIFO}"
+    sprint "${FIFO}"
 }
 
 # Detect control characters
@@ -55,7 +59,7 @@ find_db() { #{{{
     done
 
     # Return the db path
-    printf "%s\n" "${CHECKDIR}/.eltag"
+    sprint "${CHECKDIR}/.eltag"
 } #}}}
 
 # Add a file with a tag to db
@@ -71,10 +75,10 @@ add_tag() { #{{{
     [ -d "${DB}/${TAG}" ] || mkdir "${DB}/${TAG}"
 
     local RELNAME; RELNAME="$(realpath --relative-to="${DB%.eltag}" "${FILE}")"
-    [ "$(printf "%s\n" "${RELNAME}" | cut -c1-3)" = "../" ] && \
+    [ "$(sprint "${RELNAME}" | cut -c1-3)" = "../" ] && \
         { logerr "Can't go above db location: ${RELNAME}"; exit 1; }
 
-    local TAGPATH; TAGPATH="${TAG}/$(printf "%s\n" "${RELNAME}" | sha256sum | awk '{ print $1 }')"
+    local TAGPATH; TAGPATH="${TAG}/$(sprint "${RELNAME}" | sha256sum | awk '{ print $1 }')"
     if [ -L "${DB}/${TAGPATH}" ]; then
         # Symbolic link exists
         [ "${VERBOSE}" != 0 ] && loginfo "File already tagged" || :
@@ -97,10 +101,10 @@ remove_tag() { #{{{
     [ -d "${DB}/${TAG}" ] || return 0 # Tag not in db, skip
 
     local RELNAME; RELNAME="$(realpath --relative-to="${DB%.eltag}" "${FILE}")"
-    [ "$(printf "%s\n" "${RELNAME}" | cut -c1-3)" = "../" ] && \
+    [ "$(sprint "${RELNAME}" | cut -c1-3)" = "../" ] && \
         { logerr "Can't go above db location: ${RELNAME}"; exit 1; }
 
-    local TAGPATH; TAGPATH="${TAG}/$(printf "%s\n" "${RELNAME}" | sha256sum | awk '{ print $1 }')"
+    local TAGPATH; TAGPATH="${TAG}/$(sprint "${RELNAME}" | sha256sum | awk '{ print $1 }')"
     if [ -L "${DB}/${TAGPATH}" ]; then
         # Symbolic link exists
         unlink "${DB}/${TAGPATH}"
@@ -127,10 +131,10 @@ parse_tags_files() { # {{{
     local arg
     for arg in "$@"; do
         # Check the type of arg
-        if [ "$(printf "%s\n" "${arg}" | cut -c1)" = ":" ]; then
+        if [ "$(sprint "${arg}" | cut -c1)" = ":" ]; then
             # Tag
             TAGS_SUPPLIED="1"
-            local TAG; TAG="$(printf "%s\n" "${arg}" | cut -c2-)"
+            local TAG; TAG="$(sprint "${arg}" | cut -c2-)"
 
             printf "T: %s\n" "${TAG}" >"${TAGS_FIFO}" &
 
@@ -140,8 +144,8 @@ parse_tags_files() { # {{{
             local FILE; FILE="${arg}"
 
             # Remove prefix if escaping a filename
-            [ "$(printf "%s\n" "${FILE}" | cut -c1,2)" = '\:' ] && \
-                FILE="$(printf "%s\n" "${FILE}" | cut -c2-)"
+            [ "$(sprint "${FILE}" | cut -c1,2)" = '\:' ] && \
+                FILE="$(sprint "${FILE}" | cut -c2-)"
 
             printf "F: %s\n" "${FILE}" >"${FILES_FIFO}" &
         fi
@@ -171,13 +175,13 @@ parse_tags_files() { # {{{
 
     # Log the results
     log "Using tags:"
-    log "$(printf "%s\n"  "${TAGS}" | sed 's/^T: /  /')"
+    log "$(sprint  "${TAGS}" | sed 's/^T: /  /')"
     log "On files:"
-    log "$(printf "%s\n" "${FILES}" | sed 's/^F: /  /')"
+    log "$(sprint "${FILES}" | sed 's/^F: /  /')"
 
     # Return
-    printf "%s\n" "${TAGS}"
-    printf "%s\n" "${FILES}"
+    sprint "${TAGS}"
+    sprint "${FILES}"
 } # }}}
 
 # Add tags to files
@@ -185,18 +189,18 @@ add_tags() { #{{{
     [ -z "$1" ] && { logerr "No arguments!"; exit 1; }
 
     local TAG_FILE_INFO; TAG_FILE_INFO="$(parse_tags_files "$@")"
-    local  TAGS;  TAGS="$(printf "%s\n" "${TAG_FILE_INFO}" | sed '/^F: /d;s/^T: //')"
-    local FILES; FILES="$(printf "%s\n" "${TAG_FILE_INFO}" | sed '/^T: /d;s/^F: //')"
+    local  TAGS;  TAGS="$(sprint "${TAG_FILE_INFO}" | sed '/^F: /d;s/^T: //')"
+    local FILES; FILES="$(sprint "${TAG_FILE_INFO}" | sed '/^T: /d;s/^F: //')"
 
     # Loop over files and each tag
     local  TAGS_FIFO;  TAGS_FIFO="$(mktmpfifo)"
     local FILES_FIFO; FILES_FIFO="$(mktmpfifo)"
 
     local FILE TAG
-    printf "%s\n" "${FILES}" >"${FILES_FIFO}" &
+    sprint "${FILES}" >"${FILES_FIFO}" &
     while IFS= read -r FILE; do
 
-        printf "%s\n" "${TAGS}" >"${TAGS_FIFO}" &
+        sprint "${TAGS}" >"${TAGS_FIFO}" &
         while IFS= read -r TAG; do
 
             add_tag "${TAG}" "${FILE}"
@@ -213,18 +217,18 @@ remove_tags() { #{{{
     [ -z "$1" ] && { logerr "No arguments!"; exit 1; }
 
     local TAG_FILE_INFO; TAG_FILE_INFO="$(parse_tags_files "$@")"
-    local  TAGS;  TAGS="$(printf "%s\n" "${TAG_FILE_INFO}" | sed '/^F: /d;s/^T: //')"
-    local FILES; FILES="$(printf "%s\n" "${TAG_FILE_INFO}" | sed '/^T: /d;s/^F: //')"
+    local  TAGS;  TAGS="$(sprint "${TAG_FILE_INFO}" | sed '/^F: /d;s/^T: //')"
+    local FILES; FILES="$(sprint "${TAG_FILE_INFO}" | sed '/^T: /d;s/^F: //')"
 
     # Loop over files and each tag
     local  TAGS_FIFO;  TAGS_FIFO="$(mktmpfifo)"
     local FILES_FIFO; FILES_FIFO="$(mktmpfifo)"
 
     local FILE TAG
-    printf "%s\n" "${FILES}" >"${FILES_FIFO}" &
+    sprint "${FILES}" >"${FILES_FIFO}" &
     while IFS= read -r FILE; do
 
-        printf "%s\n" "${TAGS}" >"${TAGS_FIFO}" &
+        sprint "${TAGS}" >"${TAGS_FIFO}" &
         while IFS= read -r TAG; do
 
             remove_tag "${TAG}" "${FILE}"
@@ -260,16 +264,16 @@ search_tags() { # {{{
 
     local tag
     for tag in "$@"; do
-        if [ "$(printf "%s\n" "${tag}" | cut -c1)" = '-' ]; then
+        if [ "$(sprint "${tag}" | cut -c1)" = '-' ]; then
             # Exclude
-            printf "%s\n" "${tag}" | cut -c2- >"${EXCLUDE_FIFO}" &
+            sprint "${tag}" | cut -c2- >"${EXCLUDE_FIFO}" &
             EXCLUDE_TAGS_EXIST="1"
         else
-            [ "$(printf "%s\n" "${tag}" | cut -c1,2)" = '\-' ] && \
-                tag="$(printf "%s\n" "${tag}" | cut -c2-)"
+            [ "$(sprint "${tag}" | cut -c1,2)" = '\-' ] && \
+                tag="$(sprint "${tag}" | cut -c2-)"
 
             # Include
-            printf "%s\n" "${tag}" >"${INCLUDE_FIFO}" &
+            sprint "${tag}" >"${INCLUDE_FIFO}" &
             INCLUDE_TAGS_EXIST="1"
         fi
     done
@@ -283,28 +287,28 @@ search_tags() { # {{{
 
     # Filter based on tags
     log "Included tags:"
-    log "$(printf "%s\n" "${INCLUDE_TAGS}" | sed 's/^\(.*\)$/  \1/')"
+    log "$(sprint "${INCLUDE_TAGS}" | sed 's/^\(.*\)$/  \1/')"
     log "Excluded tags:"
-    log "$(printf "%s\n" "${EXCLUDE_TAGS}" | sed 's/^\(.*\)$/  \1/')"
+    log "$(sprint "${EXCLUDE_TAGS}" | sed 's/^\(.*\)$/  \1/')"
 
     local DB_DUMP; DB_DUMP="$(dump)"
 
     local TAG
     local FILTER_FIFO; FILTER_FIFO="$(mktmpfifo)"
 
-    printf "%s\n" "${INCLUDE_TAGS}" >"${FILTER_FIFO}" &
+    sprint "${INCLUDE_TAGS}" >"${FILTER_FIFO}" &
     while IFS= read -r TAG; do
-        DB_DUMP="$(printf "%s\n" "${DB_DUMP}" | grep "/${TAG}/")"
+        DB_DUMP="$(sprint "${DB_DUMP}" | grep "/${TAG}/")"
     done <"${FILTER_FIFO}"
 
-    printf "%s\n" "${EXCLUDE_TAGS}" >"${FILTER_FIFO}" &
+    sprint "${EXCLUDE_TAGS}" >"${FILTER_FIFO}" &
     while IFS= read -r TAG; do
-        DB_DUMP="$(printf "%s\n" "${DB_DUMP}" | grep -v "/${TAG}/")"
+        DB_DUMP="$(sprint "${DB_DUMP}" | grep -v "/${TAG}/")"
     done <"${FILTER_FIFO}"
 
     rm "${FILTER_FIFO}"
 
-    printf "%s\n" "${DB_DUMP}" | grep -Eo '^[0-9a-f]+'
+    sprint "${DB_DUMP}" | grep -Eo '^[0-9a-f]+'
 } # }}}
 
 main() {
