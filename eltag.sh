@@ -1,4 +1,5 @@
 #!/bin/sh
+set -eu
 WORKDIR="$(pwd)"
 
 # Utility functions
