@@ -2,10 +2,14 @@
 set -eu
 WORKDIR="$(pwd)"
 
-# Utility functions
+# Utility functions {{{
+log() {
+    printf "[I]: %s\n" "$*" >&2
+}
 logerr() {
     printf "[E]: %s\n" "$*" >&2
 }
+# }}}
 
 # Create an eltag folder
 init() {
