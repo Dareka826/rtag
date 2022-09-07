@@ -56,6 +56,10 @@ add_tag() { #{{{
     }
 } #}}}
 
+parse_tags_files() {
+    # TODO: Move functionality from add_tags here to reuse for untagging
+}
+
 # Parse tags and files
 add_tags() { #{{{
     [ -z "$1" ] && { logerr "[E]: No arguments!"; exit 1; }
