@@ -60,16 +60,16 @@ add_tag() { #{{{
 
     [ -d "${DB}/${TAG}" ] || mkdir "${DB}/${TAG}"
 
-    local LNAME; LNAME="$(realpath --relative-to="${WORKDIR}" "${FILE}")"
-    [ "$(printf "%s\n" "${LNAME}" | cut -c1-3)" = "../" ] && { logerr "Can't go above db location!"; exit 1; }
+    local RELNAME; RELNAME="$(realpath --relative-to="${DB%.eltag}" "${FILE}")"
+    [ "$(printf "%s\n" "${RELNAME}" | cut -c1-3)" = "../" ] && { logerr "Can't go above db location!"; exit 1; }
 
-    local TAGPATH; TAGPATH="${TAG}/$(printf "%s\n" "${LNAME}" | sha256sum | awk '{ print $1 }')"
+    local TAGPATH; TAGPATH="${TAG}/$(printf "%s\n" "${RELNAME}" | sha256sum | awk '{ print $1 }')"
     if [ -L "${DB}/${TAGPATH}" ]; then
         # Symbolic link exists
         [ "${VERBOSE}" != 0 ] && loginfo "File already tagged" || :
     else
         # File not tagged with this tag yet, so tag it
-        ln -s "../../${LNAME}" "${DB}/${TAGPATH}"
+        ln -s "../../${RELNAME}" "${DB}/${TAGPATH}"
     fi
 } #}}}
 
