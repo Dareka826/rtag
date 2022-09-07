@@ -61,7 +61,8 @@ add_tag() { #{{{
     [ -d "${DB}/${TAG}" ] || mkdir "${DB}/${TAG}"
 
     local RELNAME; RELNAME="$(realpath --relative-to="${DB%.eltag}" "${FILE}")"
-    [ "$(printf "%s\n" "${RELNAME}" | cut -c1-3)" = "../" ] && { logerr "Can't go above db location!"; exit 1; }
+    [ "$(printf "%s\n" "${RELNAME}" | cut -c1-3)" = "../" ] && \
+        { logerr "Can't go above db location: ${RELNAME}"; exit 1; }
 
     local TAGPATH; TAGPATH="${TAG}/$(printf "%s\n" "${RELNAME}" | sha256sum | awk '{ print $1 }')"
     if [ -L "${DB}/${TAGPATH}" ]; then
@@ -84,7 +85,8 @@ remove_tag() { #{{{
     [ -d "${DB}/${TAG}" ] || return 0 # Tag not in db, skip
 
     local RELNAME; RELNAME="$(realpath --relative-to="${DB%.eltag}" "${FILE}")"
-    [ "$(printf "%s\n" "${RELNAME}" | cut -c1-3)" = "../" ] && { logerr "Can't go above db location!"; exit 1; }
+    [ "$(printf "%s\n" "${RELNAME}" | cut -c1-3)" = "../" ] && \
+        { logerr "Can't go above db location: ${RELNAME}"; exit 1; }
 
     local TAGPATH; TAGPATH="${TAG}/$(printf "%s\n" "${RELNAME}" | sha256sum | awk '{ print $1 }')"
     if [ -L "${DB}/${TAGPATH}" ]; then
