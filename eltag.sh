@@ -190,7 +190,7 @@ parse_tags_files() { # {{{
     # Log the results
     log "Using tags:"
     log "$(sprint  "${TAGS}" | sed 's/^T: /  /')"
-    log "On files:"
+    log "With files:"
     log "$(sprint "${FILES}" | sed 's/^F: /  /')"
 
     # Return
@@ -221,8 +221,8 @@ add_tags() { #{{{
             [ "${VERBOSE}" -ge 1 ] && loginfo "Tagging: ${FILE} with: ${TAG}" || :
 
         done <"${TAGS_FIFO}"
-    done <"${FILES_FIFO}"
 
+    done <"${FILES_FIFO}"
     rm "${TAGS_FIFO}" "${FILES_FIFO}"
 } #}}}
 
@@ -249,12 +249,12 @@ remove_tags() { #{{{
             [ "${VERBOSE}" -ge 1 ] && loginfo "Untagging: ${FILE} with: ${TAG}" || :
 
         done <"${TAGS_FIFO}"
-    done <"${FILES_FIFO}"
 
+    done <"${FILES_FIFO}"
     rm "${TAGS_FIFO}" "${FILES_FIFO}"
 } #}}}
 
-# Print database in parsable format
+# Print the database in a parsable format
 dump() { # {{{
     local DB; DB="$(find_db)"
     local file
