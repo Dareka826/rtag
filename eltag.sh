@@ -4,6 +4,10 @@ IFS="$(printf "\t\n")"
 
 WORKDIR="$(pwd)"
 VERBOSE="0"
+# Verbosity:
+# 0 - Log errors
+# 1 - Log potentially useful info
+# 2 - Log everything
 
 # Utility functions {{{
 sprint() {
@@ -25,6 +29,7 @@ mktmpfifo() {
     [ -e "${FIFO}" ] && rm -f "${FIFO}"
     mkfifo -m0700 "${FIFO}"
 
+    [ "${VERBOSE}" -ge 2 ] && loginfo "Created fifo: ${FIFO}" || :
     sprint "${FIFO}"
 }
 
@@ -41,6 +46,8 @@ validate_name() {
 init() {
     [ -d "${WORKDIR}/.eltag" ] && { logerr "DB already exists!"; exit 1; }
     mkdir "${WORKDIR}/.eltag"
+
+    [ "${VERBOSE}" -ge 2 ] && loginfo "Initialized db at: ${WORKDIR}/.eltag" || :
 }
 
 # Traverse filesystem to find db folder
@@ -60,6 +67,7 @@ find_db() { #{{{
         fi
     done
 
+    [ "${VERBOSE}" -ge 2 ] && loginfo "Found db at: ${CHECKDIR}/.eltag" || :
     # Return the db path
     sprint "${CHECKDIR}/.eltag"
 } #}}}
@@ -83,10 +91,11 @@ add_tag() { #{{{
     local TAGPATH; TAGPATH="${TAG}/$(sprint "${RELNAME}" | sha256sum | awk '{ print $1 }')"
     if [ -L "${DB}/${TAGPATH}" ]; then
         # Symbolic link exists
-        [ "${VERBOSE}" != 0 ] && loginfo "File already tagged" || :
+        [ "${VERBOSE}" -ge 1 ] && loginfo "File: ${FILE} already tagged with: ${TAG}" || :
     else
         # File not tagged with this tag yet, so tag it
         ln -s "../../${RELNAME}" "${DB}/${TAGPATH}"
+        [ "${VERBOSE}" -ge 2 ] && loginfo "Tagged file: ${FILE} with: ${TAG}" || :
     fi
 } #}}}
 
@@ -110,9 +119,10 @@ remove_tag() { #{{{
     if [ -L "${DB}/${TAGPATH}" ]; then
         # Symbolic link exists
         unlink "${DB}/${TAGPATH}"
+        [ "${VERBOSE}" -ge 2 ] && loginfo "Untagged file: ${FILE} with: ${TAG}" || :
     else
         # File not tagged
-        [ "${VERBOSE}" != 0 ] && loginfo "File: ${FILE} not tagged with: ${TAG}" || :
+        [ "${VERBOSE}" -ge 1 ] && loginfo "File: ${FILE} not tagged with: ${TAG}" || :
     fi
 
     # Try to remove dir (will get removed if empty)
@@ -138,6 +148,7 @@ parse_tags_files() { # {{{
             TAGS_SUPPLIED="1"
             local TAG; TAG="$(sprint "${arg}" | cut -c2-)"
 
+            [ "${VERBOSE}" -ge 2 ] && loginfo "Parsed tag: ${TAG}" || :
             printf "T: %s\n" "${TAG}" >"${TAGS_FIFO}" &
 
         else
@@ -149,6 +160,7 @@ parse_tags_files() { # {{{
             [ "$(sprint "${FILE}" | cut -c1,2)" = '\:' ] && \
                 FILE="$(sprint "${FILE}" | cut -c2-)"
 
+            [ "${VERBOSE}" -ge 2 ] && loginfo "Parsed file: ${FILE}" || :
             printf "F: %s\n" "${FILE}" >"${FILES_FIFO}" &
         fi
     done
@@ -206,7 +218,7 @@ add_tags() { #{{{
         while IFS= read -r TAG; do
 
             add_tag "${TAG}" "${FILE}"
-            [ "${VERBOSE}" != "0" ] && loginfo "Tagging: ${FILE} with: ${TAG}" || :
+            [ "${VERBOSE}" -ge 1 ] && loginfo "Tagging: ${FILE} with: ${TAG}" || :
 
         done <"${TAGS_FIFO}"
     done <"${FILES_FIFO}"
@@ -234,7 +246,7 @@ remove_tags() { #{{{
         while IFS= read -r TAG; do
 
             remove_tag "${TAG}" "${FILE}"
-            [ "${VERBOSE}" != "0" ] && loginfo "Untagging: ${FILE} with: ${TAG}" || :
+            [ "${VERBOSE}" -ge 1 ] && loginfo "Untagging: ${FILE} with: ${TAG}" || :
 
         done <"${TAGS_FIFO}"
     done <"${FILES_FIFO}"
@@ -314,7 +326,11 @@ search_tags() { # {{{
 } # }}}
 
 main() {
-    [ "$1" = "-v" ] && { VERBOSE="1"; shift 1; }
+    # Calculate verbosity level
+    while [ "$1" = "-v" ]; do
+        VERBOSE="$((VERBOSE + 1))"
+        shift 1
+    done
     [ "$1" ] || exit 1
 
     # Abort on any control characters in filenames/tags
