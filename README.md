@@ -28,6 +28,14 @@ Finds files with specified tag rules (include, exclude)
 
 Print database contents as parseable text data. Can be used with grep or other tools to achieve more advanced tag filtering than the search subcommand.
 
+# csumg
+
+Generate checksummed paths for passed files
+
+# csumf
+
+Find file path from checksum in db
+
 ## parse
 
 Used for testing whether differentiating between tag and file arguments works as intended.
