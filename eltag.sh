@@ -75,6 +75,41 @@ find_db() { #{{{
     sprint "${CHECKDIR}/.eltag"
 } #}}}
 
+# Operations on checksums
+csum_find() { # {{{
+    [ -z "$1" ] && { logerr "No checksum to check"; exit 1; }
+    local DB; DB="$(find_db)"
+
+    local FILESUM
+    for FILESUM in "$@"; do
+        [ "$(sprint "${FILESUM}" | grep -Eo '^[0-9a-f]+')" != "${FILESUM}" ] && {
+            logerr "Invalid checksum: ${FILESUM}"
+            exit 1
+        }
+
+        local FIND_RESULT; FIND_RESULT="$(find "${DB}" -name "${FILESUM}")"
+        if [ -n "${FIND_RESULT}" ]; then
+            sprint "${DB%.eltag}$(readlink "$(sprint "${FIND_RESULT}" | head -1)" | sed 's/^..\/..\///')"
+        else
+            logerr "Checksum not found in db: ${FILESUM}"
+        fi
+    done
+}
+
+csum_generate() {
+    [ -z "$1" ] && { logerr "No arguments"; exit 1; }
+    local DB; DB="$(find_db)"
+
+    local FILE
+    for FILE in "$@"; do
+        local RELNAME; RELNAME="$(realpath --relative-to="${DB%.eltag}" "${FILE}")"
+        [ "$(sprint "${RELNAME}" | cut -c1-3)" = "../" ] && \
+            { logerr "Can't go above db location: ${RELNAME}"; exit 1; }
+
+        sprint "${RELNAME}" | sha256sum | awk '{ print $1 }'
+    done
+} # }}}
+
 # Add a file with a tag to db
 add_tag() { #{{{
     local DB; DB="$(find_db)"
@@ -88,10 +123,7 @@ add_tag() { #{{{
     [ -d "${DB}/${TAG}" ] || mkdir "${DB}/${TAG}"
 
     local RELNAME; RELNAME="$(realpath --relative-to="${DB%.eltag}" "${FILE}")"
-    [ "$(sprint "${RELNAME}" | cut -c1-3)" = "../" ] && \
-        { logerr "Can't go above db location: ${RELNAME}"; exit 1; }
-
-    local TAGPATH; TAGPATH="${TAG}/$(sprint "${RELNAME}" | sha256sum | awk '{ print $1 }')"
+    local TAGPATH; TAGPATH="${TAG}/$(csum_generate "${FILE}")"
     if [ -L "${DB}/${TAGPATH}" ]; then
         # Symbolic link exists
         [ "${VERBOSE}" -ge 1 ] && loginfo "File: ${FILE} already tagged with: ${TAG}" || :
@@ -114,11 +146,7 @@ remove_tag() { #{{{
 
     [ -d "${DB}/${TAG}" ] || return 0 # Tag not in db, skip
 
-    local RELNAME; RELNAME="$(realpath --relative-to="${DB%.eltag}" "${FILE}")"
-    [ "$(sprint "${RELNAME}" | cut -c1-3)" = "../" ] && \
-        { logerr "Can't go above db location: ${RELNAME}"; exit 1; }
-
-    local TAGPATH; TAGPATH="${TAG}/$(sprint "${RELNAME}" | sha256sum | awk '{ print $1 }')"
+    local TAGPATH; TAGPATH="${TAG}/$(csum_generate "${FILE}")"
     if [ -L "${DB}/${TAGPATH}" ]; then
         # Symbolic link exists
         unlink "${DB}/${TAGPATH}"
@@ -332,7 +360,7 @@ search_tags() { # {{{
         local FILESUM
         sprint "${DB_DUMP}" | grep -Eo '^[0-9a-f]+' | \
             while IFS= read -r FILESUM; do
-                sprint "${DB%.eltag}$(readlink "$(find "${DB}" -name "${FILESUM}" | head -1)" | sed 's/^..\/..\///')"
+                csum_find "${FILESUM}"
             done
     fi
 } # }}}
@@ -359,6 +387,8 @@ main() {
          "untag") shift 1; remove_tags "$@" ;;
           "dump") dump ;;
         "search") shift 1; search_tags "$@" ;;
+         "csumf") shift 1; csum_find "$@" ;;
+         "csumg") shift 1; csum_generate "$@" ;;
     esac
     exit 0
 }
