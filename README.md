@@ -1,17 +1,10 @@
 # Eltag - file tagging with symlinks
 
-## TODO:
-- [x] init
-- [x] show
-- [x] tag
-- [x] untag
-- [ ] search
-
 # Subcommands:
 
 ## init
 
-Creates the .eltag directory used to store tag info
+Creates an `.eltag` directory used to store tag info
 
 ## show
 
@@ -27,12 +20,22 @@ Deletes links from tag folders and empty tag folders if the last item is removed
 
 ## search
 
-Uses `fd` (or `find` if not available) to find files with given tags.
+Finds files with specified tag rules (include, exclude)
+
+# Additional Subcommands:
+
+## dump
+
+Print database contents as parseable text data. Can be used with grep or other tools to achieve more advanced tag filtering than the search subcommand.
+
+## parse
+
+Used for testing whether differentiating between tag and file arguments works as intended.
 
 # Tag specification
 
 Tags are specified with a `:` (eg. `:music`).
-To escape this behaviour (if the filename starts with a `:`) prepend the argument with a `\`.
+To escape this behaviour (if the filename starts with a `:`) prepend the argument with a `\` (in most shells the `\` will need to be escaped).
 
 # Data format
 
