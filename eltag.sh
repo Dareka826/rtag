@@ -46,12 +46,12 @@ validate_name() {
 # }}}
 
 # Create an eltag folder
-init() {
+init() { # {{{
     [ -d "${WORKDIR}/.eltag" ] && { logerr "DB already exists!"; exit 1; }
     mkdir "${WORKDIR}/.eltag"
 
     [ "${VERBOSE}" -ge 2 ] && loginfo "Initialized db at: ${WORKDIR}/.eltag" || :
-}
+} # }}}
 
 # Traverse filesystem to find db folder
 find_db() { #{{{
