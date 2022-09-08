@@ -10,8 +10,8 @@ VERBOSE="0"
 #  1 - Log potentially useful info
 #  2 - Log everything
 
-# Utility functions {{{
-sprint() {
+# Utility functions
+sprint() { # {{{
     printf "%s\n" "$*"
 }
 
