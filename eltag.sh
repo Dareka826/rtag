@@ -72,7 +72,7 @@ add_tag() { #{{{
     [ -z "${TAG}"  ] && { logerr "add_tag(): No tag specified!";  exit 1; }
     [ -z "${FILE}" ] && { logerr "add_tag(): No file specified!"; exit 1; }
 
-    validate_tag_name "${TAG}"
+    validate_name "${TAG}"
 
     [ -d "${DB}/${TAG}" ] || mkdir "${DB}/${TAG}"
 
@@ -98,7 +98,7 @@ remove_tag() { #{{{
     [ -z "${TAG}"  ] && { logerr "remove_tag(): No tag specified!";  exit 1; }
     [ -z "${FILE}" ] && { logerr "remove_tag(): No file specified!"; exit 1; }
 
-    validate_tag_name "${TAG}"
+    validate_name "${TAG}"
 
     [ -d "${DB}/${TAG}" ] || return 0 # Tag not in db, skip
 
