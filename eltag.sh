@@ -305,6 +305,7 @@ search_tags() { # {{{
     log "Excluded tags:"
     log "$(sprint "${EXCLUDE_TAGS}" | sed 's/^\(.*\)$/  \1/')"
 
+    local DB; DB="$(find_db)"
     local DB_DUMP; DB_DUMP="$(dump)"
 
     local TAG
@@ -322,7 +323,15 @@ search_tags() { # {{{
 
     rm "${FILTER_FIFO}"
 
-    sprint "${DB_DUMP}" | grep -Eo '^[0-9a-f]+'
+    if [ -z "${DB_DUMP}" ]; then
+        loginfo "No files matched specified criteria"
+    else
+        local FILESUM
+        sprint "${DB_DUMP}" | grep -Eo '^[0-9a-f]+' | \
+            while IFS= read -r FILESUM; do
+                sprint "${DB%.eltag}$(readlink "$(find "${DB}" -name "${FILESUM}" | head -1)" | sed 's/^..\/..\///')"
+            done
+    fi
 } # }}}
 
 main() {
