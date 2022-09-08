@@ -5,9 +5,10 @@ IFS="$(printf "\t\n")"
 WORKDIR="$(pwd)"
 VERBOSE="0"
 # Verbosity:
-# 0 - Log errors
-# 1 - Log potentially useful info
-# 2 - Log everything
+# -1 - Silent mode (no output is good output)
+#  0 - Log errors
+#  1 - Log potentially useful info
+#  2 - Log everything
 
 # Utility functions {{{
 sprint() {
@@ -15,10 +16,12 @@ sprint() {
 }
 
 log() {
-    printf "%s\n" "$*" >&2
+    [ "${VERBOSE}" -ge 0 ] && \
+        printf "%s\n" "$*" >&2 || :
 }
 loginfo() {
-    printf "[I]: %s\n" "$*" >&2
+    [ "${VERBOSE}" -ge 0 ] && \
+        printf "[I]: %s\n" "$*" >&2 || :
 }
 logerr() {
     printf "[E]: %s\n" "$*" >&2
@@ -340,6 +343,7 @@ main() {
         VERBOSE="$((VERBOSE + 1))"
         shift 1
     done
+    [ "$1" = "-s" ] && { VERBOSE="-1"; shift 1; }
     [ "$1" ] || exit 1
 
     # Abort on any control characters in filenames/tags
