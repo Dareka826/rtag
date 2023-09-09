@@ -7,4 +7,36 @@ _NL="${_NL%x}"
 
 IFS="${_TB}${_NL}"
 
-exit 0
+# Args: root dir
+build_cache() {
+    local ROOT_DIR="${1}"
+
+    # Assumptions:
+    # - filenames DON'T contain newlines
+    # - tags DON'T contain tabs
+    # - tags DON'T contain newlines
+    #
+    # I think the above assumptions are reasonable, but they can always be
+    # escaped later if needed.
+
+    local FILE
+    find "${ROOT_DIR}" -iname '*.tags' | \
+        sed -e 's/\\/\\\\/g' \
+            -e 's/\t/\\t/g' | \
+        while read -r FILE; do
+            # Filename
+            printf "${FILE}"
+
+            # Tags separated with tabs
+            cat "${FILE}" | \
+                sed -e 's/^/\t/' \
+                    -e ':loop' \
+                    -e 'N' \
+                    -e 's/\n/\t/g' \
+                    -e 't loop'
+        done
+}
+
+# TODO: Remove
+ROOT_DIR="/home/rin/repos/rtag/test_data"
+build_cache "${ROOT_DIR}"
