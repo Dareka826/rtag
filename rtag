@@ -1,0 +1,10 @@
+#!/bin/sh
+set -eu
+
+_TB="$(printf "\t")"
+_NL="$(printf "\nx")"
+_NL="${_NL%x}"
+
+IFS="${_TB}${_NL}"
+
+exit 0
