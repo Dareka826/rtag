@@ -145,8 +145,6 @@ xparse_execute_args "$@"
 
 # Args: root dir
 build_cache() { # {{{
-    local ROOT_DIR="${1}"
-
     # Assumptions:
     # - filenames DON'T contain newlines
     # - tags DON'T contain tabs
@@ -158,25 +156,23 @@ build_cache() { # {{{
     local TAGS_FILE
     IFS=
 
-    find "${ROOT_DIR}" -iname '*.tags' -size '+0' | \
-        escape_path | \
+    find "${BUILD_ROOT_DIR}" -iname '*.tags' -size '+0' | \
         while read -r TAGS_FILE; do
             local FILE="${TAGS_FILE%.tags}"
-            [ -e "$(printf "%s" "${FILE}" | unescape_path)" ] || continue
+            [ -e "${FILE}" ] || continue
 
             # Filename
-            printf "%s\t" "${FILE}"
+            printf "${FILE}" | escape_path
 
             # Tags separated with tabs
-            cat "$(printf "%s" "${TAGS_FILE}" | unescape_path)" | \
+            cat "${TAGS_FILE}" | \
                 sed -e '/^$/d' | \
                 tr '\n' '\t' | \
-                sed -e 's/\t$/\n/'
+                sed -e 's/^/\t/' -e 's/$/\n/'
         done
 } # }}}
 
 do_search() { # {{{
-
     local CACHE="$(sed -e 's/$/\t/' <"${SEARCH_CACHE_FILE}")"
 
     local INC_TAG
@@ -204,7 +200,7 @@ do_search() { # {{{
 } # }}}
 
 case "${MODE}" in
-    "${MODE_BUILD}") build_cache "${BUILD_ROOT_DIR}" ;;
+    "${MODE_BUILD}") build_cache ;;
     "${MODE_SEARCH}") do_search ;;
     '*') printf "[E]: Unknown mode\n" >&2
          exit 1 ;;
