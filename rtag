@@ -50,6 +50,7 @@ unescape_path() { # {{{
 do_build_set_root_dir() { # {{{
     switch_mode "${MODE_BUILD}"
 
+    [ -e "${1}" ] || exit 1
     BUILD_ROOT_DIR="${1}"
 } # }}}
 
