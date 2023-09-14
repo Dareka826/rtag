@@ -25,6 +25,8 @@ switch_mode() {
     MODE="${NEW_MODE}"
 } # }}}
 
+BUILD_ROOT_DIR=""
+
 SEARCH_CACHE_FILE=""
 SEARCH_INCLUDE_TAGS=""
 SEARCH_EXCLUDE_TAGS=""
@@ -40,42 +42,10 @@ unescape_path() {
         -e 's/\\\\/\\/g'
 }
 
-# Args: root dir
-build_cache() {
-    # {{{
-    local ROOT_DIR="${1}"
-
-    # Assumptions:
-    # - filenames DON'T contain newlines
-    # - tags DON'T contain tabs
-    # - tags DON'T contain newlines
-    #
-    # I think the above assumptions are reasonable, but they can always be
-    # escaped later if needed.
-
-    local TAGS_FILE
-    IFS=
-
-    find "${ROOT_DIR}" -iname '*.tags' -size '+0' | \
-        escape_path | \
-        while read -r TAGS_FILE; do
-            local FILE="${TAGS_FILE%.tags}"
-            [ -e "$(printf "%s" "${FILE}" | unescape_path)" ] || continue
-
-            # Filename
-            printf "%s\t" "${FILE}"
-
-            # Tags separated with tabs
-            cat "$(printf "%s" "${TAGS_FILE}" | unescape_path)" | \
-                sed -e '/^$/d' | \
-                tr '\n' '\t' | \
-                sed -e 's/\t$/\n/'
-        done
-} # }}}
-
 do_build_cache() {
     switch_mode "${MODE_BUILD}"
-    build_cache "${1}"
+
+    BUILD_ROOT_DIR="${1}"
 }
 
 do_search_set_cache_file() {
@@ -162,6 +132,39 @@ xparse_add_option  "dm"       '*' do_remove_tags
 
 xparse_execute_args "$@"
 
+# Args: root dir
+build_cache() {
+    # {{{
+    local ROOT_DIR="${1}"
+
+    # Assumptions:
+    # - filenames DON'T contain newlines
+    # - tags DON'T contain tabs
+    # - tags DON'T contain newlines
+    #
+    # I think the above assumptions are reasonable, but they can always be
+    # escaped later if needed.
+
+    local TAGS_FILE
+    IFS=
+
+    find "${ROOT_DIR}" -iname '*.tags' -size '+0' | \
+        escape_path | \
+        while read -r TAGS_FILE; do
+            local FILE="${TAGS_FILE%.tags}"
+            [ -e "$(printf "%s" "${FILE}" | unescape_path)" ] || continue
+
+            # Filename
+            printf "%s\t" "${FILE}"
+
+            # Tags separated with tabs
+            cat "$(printf "%s" "${TAGS_FILE}" | unescape_path)" | \
+                sed -e '/^$/d' | \
+                tr '\n' '\t' | \
+                sed -e 's/\t$/\n/'
+        done
+} # }}}
+
 do_search() {
     local CACHE="$(sed -e 's/$/\t/' <"${SEARCH_CACHE_FILE}")"
 
@@ -189,6 +192,7 @@ do_search() {
 }
 
 case "${MODE}" in
+    "${MODE_BUILD}") build_cache "${BUILD_ROOT_DIR}" ;;
     "${MODE_SEARCH}") do_search ;;
     '*') printf "[E]: Unknown mode\n" >&2
          exit 1 ;;
