@@ -173,7 +173,7 @@ build_cache() { # {{{
 } # }}}
 
 do_search() { # {{{
-    local CACHE="$(sed -e 's/$/\t/' <"${SEARCH_CACHE_FILE}")"
+    local CACHE="$(cat "${SEARCH_CACHE_FILE}")"
 
     local INC_TAG
     IFS="${_TB}"
