@@ -24,7 +24,7 @@ build_cache() {
     local FILE
     IFS=
 
-    find "${ROOT_DIR}" -iname '*.tags' | \
+    find "${ROOT_DIR}" -iname '*.tags' -size '+0' | \
         sed -e 's/\\/\\\\/g' \
             -e 's/\t/\\t/g' | \
         while read -r FILE; do
