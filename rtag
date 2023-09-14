@@ -29,6 +29,16 @@ SEARCH_CACHE_FILE=""
 SEARCH_INCLUDE_TAGS=""
 SEARCH_EXCLUDE_TAGS=""
 
+escape_path() {
+    sed -e 's/\\/\\\\/g' \
+        -e 's/\t/\\t/g'
+}
+
+unescape_path() {
+    sed -e 's/\\t/\t/g' \
+        -e 's/\\\\/\\/g'
+}
+
 # Args: root dir
 build_cache() {
     # {{{
@@ -46,17 +56,16 @@ build_cache() {
     IFS=
 
     find "${ROOT_DIR}" -iname '*.tags' -size '+0' | \
-        sed -e 's/\\/\\\\/g' \
-            -e 's/\t/\\t/g' | \
+        escape_path | \
         while read -r TAGS_FILE; do
             local FILE="${TAGS_FILE%.tags}"
-            [ -e "${FILE}" ] || continue
+            [ -e "$(printf "%s" "${FILE}" | unescape_path)" ] || continue
 
             # Filename
             printf "%s\t" "${FILE}"
 
             # Tags separated with tabs
-            cat "${TAGS_FILE}" | \
+            cat "$(printf "%s" "${TAGS_FILE}" | unescape_path)" | \
                 sed -e '/^$/d' | \
                 tr '\n' '\t' | \
                 sed -e 's/\t$/\n/'
