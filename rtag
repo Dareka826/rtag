@@ -7,7 +7,7 @@ _TB="$(printf "\t")"
 _NL="$(printf "\nx")"
 _NL="${_NL%x}"
 
-IFS="${_TB}${_NL}"
+IFS=
 
 # Args: root dir
 build_cache() {
@@ -22,6 +22,8 @@ build_cache() {
     # escaped later if needed.
 
     local FILE
+    IFS=
+
     find "${ROOT_DIR}" -iname '*.tags' | \
         sed -e 's/\\/\\\\/g' \
             -e 's/\t/\\t/g' | \
