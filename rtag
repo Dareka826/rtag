@@ -29,7 +29,7 @@ BUILD_ROOT_DIR=""
 SEARCH_CACHE_FILE=""
 SEARCH_INCLUDE_TAGS=""
 SEARCH_EXCLUDE_TAGS=""
-SEARCH_FILE_LIST="0"
+SEARCH_SHOW_TAGS="0"
 
 # Utils {{{
 
@@ -98,10 +98,10 @@ do_search_exclude_tags() { # {{{
     done
 } # }}}
 
-do_search_file_list() { # {{{
+do_search_show_tags() { # {{{
     switch_mode "${MODE_SEARCH}"
 
-    SEARCH_FILE_LIST="1"
+    SEARCH_SHOW_TAGS="1"
 } # }}}
 
 # }}}
@@ -121,8 +121,8 @@ xparse_add_option  "exclude"           1  do_search_exclude_tag
 xparse_add_option  "e"                 1  do_search_exclude_tag
 xparse_add_option  "exclude_multiple" '*' do_search_exclude_tags
 xparse_add_option  "em"               '*' do_search_exclude_tags
-xparse_add_option  "file_list"         0  do_search_file_list
-xparse_add_option  "l"                 0  do_search_file_list
+xparse_add_option  "show_tags"         0  do_search_show_tags
+xparse_add_option  "s"                 0  do_search_show_tags
 
 # File selection
 xparse_add_option  "file"   1  do_select_file
@@ -192,13 +192,14 @@ do_search() {
         CACHE="$(printf "%s\n" "${CACHE}" | grep -Fv "${_TB}${EXC_TAG}${_TB}")"
     done
 
+    IFS="${_TB}"
     printf "%s\n" "${CACHE}" | while read -r FILE TAGS; do
         FILE="$(printf "%s" "${FILE}" | unescape_path)"
 
-        if [ "${SEARCH_FILE_LIST}" = "0" ]; then
-            printf "%s\t%s\n" "${FILE}" "${TAGS}"
-        else
+        if [ "${SEARCH_SHOW_TAGS}" = "0" ]; then
             printf "%s\n" "${FILE}"
+        else
+            printf "%s\t%s\n" "${FILE}" "${TAGS}"
         fi
     done
 }
