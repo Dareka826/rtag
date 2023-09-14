@@ -46,7 +46,38 @@ build_cache() {
 
 do_build_cache() { build_cache "${1}"; }
 
+# Cache
 xparse_add_option  "build_cache"  1  do_build_cache
 xparse_add_option  "b"            1  do_build_cache
+
+# Search
+xparse_add_option  "cache_file"        1  do_search_set_cache_file
+xparse_add_option  "c"                 1  do_search_set_cache_file
+xparse_add_option  "include"           1  do_search_include_tag
+xparse_add_option  "i"                 1  do_search_include_tag
+xparse_add_option  "include_multiple" '*' do_search_include_tags
+xparse_add_option  "im"               '*' do_search_include_tags
+xparse_add_option  "exclude"           1  do_search_exclude_tag
+xparse_add_option  "e"                 1  do_search_exclude_tag
+xparse_add_option  "exclude_multiple" '*' do_search_exclude_tags
+xparse_add_option  "em"               '*' do_search_exclude_tags
+
+# File selection
+xparse_add_option  "file"   1  do_select_file
+xparse_add_option  "f"      1  do_select_file
+xparse_add_option  "files" '*' do_select_files
+xparse_add_option  "fm"    '*' do_select_files
+
+# Add
+xparse_add_option  "tag"   1  do_add_tag
+xparse_add_option  "t"     1  do_add_tag
+xparse_add_option  "tags" '*' do_add_tags
+xparse_add_option  "tm"   '*' do_add_tags
+
+# Remove
+xparse_add_option  "del_tag"   1  do_remove_tag
+xparse_add_option  "d"         1  do_remove_tag
+xparse_add_option  "del_tags" '*' do_remove_tags
+xparse_add_option  "dm"       '*' do_remove_tags
 
 xparse_execute_args "$@"
