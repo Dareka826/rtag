@@ -1,7 +1,5 @@
 # rtag - Rin's file tagging
 
-WARNING: Project is not functional yet
-
 Aims of this project:
 - easy synchronization of tags
 - no filesystem-specific features
