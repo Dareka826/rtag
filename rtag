@@ -12,6 +12,7 @@ IFS=
 MODE=""
 MODE_BUILD="build"
 MODE_SEARCH="search"
+MODE_MODIFY="modify"
 
 switch_mode() { # {{{
     local NEW_MODE="${1}"
@@ -29,6 +30,10 @@ SEARCH_CACHE_FILE=""
 SEARCH_INCLUDE_TAGS=""
 SEARCH_EXCLUDE_TAGS=""
 SEARCH_SHOW_TAGS="0"
+
+MODIFY_FILES=""
+MODIFY_ADD_TAGS=""
+MODIFY_DEL_TAGS=""
 
 ## Utils {{{
 
@@ -105,6 +110,64 @@ do_search_show_tags() { # {{{
 
 # }}}
 
+## Modify {{{
+
+do_modify_select_file() {
+    switch_mode "${MODE_MODIFY}"
+
+    local FILE="${1}"
+    [ -e "${FILE}" ] || {
+        printf "[E]: File does not exist: %s\n" "${FILE}"
+        exit 1
+    }
+
+    FILE="$(printf "${FILE}" | escape_path)"
+    MODIFY_FILES="${MODIFY_FILES}${FILE}${_TB}"
+}
+
+do_modify_add_tag() {
+    switch_mode "${MODE_MODIFY}"
+
+    local TAG="${1}"
+    MODIFY_ADD_TAGS="${MODIFY_ADD_TAGS}${TAG}${_TB}"
+}
+
+do_modify_remove_tag() {
+    switch_mode "${MODE_MODIFY}"
+
+    local TAG="${1}"
+    MODIFY_DEL_TAGS="${MODIFY_DEL_TAGS}${TAG}${_TB}"
+}
+
+do_modify_select_files() {
+    switch_mode "${MODE_MODIFY}"
+
+    local FILE
+    for FILE in "$@"; do
+        do_modify_select_file "${FILE}"
+    done
+}
+
+do_modify_add_tags() {
+    switch_mode "${MODE_MODIFY}"
+
+    local TAG
+    for TAG in "$@"; do
+        do_modify_add_tag "${TAG}"
+    done
+}
+
+do_modify_remove_tags() {
+    switch_mode "${MODE_MODIFY}"
+
+    local TAG
+    for TAG in "$@"; do
+        do_modify_remove_tag "${TAG}"
+    done
+}
+
+# }}}
+
 ## Options {{{
 
 # Cache
@@ -125,23 +188,19 @@ xparse_add_option  "em"               '*' do_search_exclude_tags
 xparse_add_option  "show_tags"         0  do_search_show_tags
 xparse_add_option  "s"                 0  do_search_show_tags
 
-# File selection
-xparse_add_option  "file"   1  do_select_file
-xparse_add_option  "f"      1  do_select_file
-xparse_add_option  "files" '*' do_select_files
-xparse_add_option  "fm"    '*' do_select_files
-
-# Add
-xparse_add_option  "tag"   1  do_add_tag
-xparse_add_option  "t"     1  do_add_tag
-xparse_add_option  "tags" '*' do_add_tags
-xparse_add_option  "tm"   '*' do_add_tags
-
-# Remove
-xparse_add_option  "del_tag"   1  do_remove_tag
-xparse_add_option  "d"         1  do_remove_tag
-xparse_add_option  "del_tags" '*' do_remove_tags
-xparse_add_option  "dm"       '*' do_remove_tags
+# Modify
+xparse_add_option  "file"      1  do_modify_select_file
+xparse_add_option  "f"         1  do_modify_select_file
+xparse_add_option  "files"    '*' do_modify_select_files
+xparse_add_option  "fm"       '*' do_modify_select_files
+xparse_add_option  "tag"       1  do_modify_add_tag
+xparse_add_option  "t"         1  do_modify_add_tag
+xparse_add_option  "tags"     '*' do_modify_add_tags
+xparse_add_option  "tm"       '*' do_modify_add_tags
+xparse_add_option  "del_tag"   1  do_modify_remove_tag
+xparse_add_option  "d"         1  do_modify_remove_tag
+xparse_add_option  "del_tags" '*' do_modify_remove_tags
+xparse_add_option  "dm"       '*' do_modify_remove_tags
 
 ## }}}
 
@@ -203,9 +262,35 @@ do_search() { # {{{
     done
 } # }}}
 
+do_modify_tags() {
+    local FILE
+
+    IFS="${_TB}"
+    for FILE in ${MODIFY_FILES}; do
+        FILE="$(printf "%s" "${FILE}" | unescape_path)"
+
+        [ -e "${FILE}.tags" ] || touch "${FILE}.tags"
+        local FILE_TAGS="$(cat "${FILE}.tags")${_NL}"
+        local TAG
+
+        IFS="${_TB}"
+        for TAG in ${MODIFY_ADD_TAGS}; do
+            FILE_TAGS="${FILE_TAGS}${TAG}${_NL}"
+        done
+
+        IFS="${_TB}"
+        for TAG in ${MODIFY_DEL_TAGS}; do
+            FILE_TAGS="$(printf "%s\n" "${FILE_TAGS}" | grep -Fxv "${TAG}")"
+        done
+
+        printf "%s" "${FILE_TAGS}" | sed '/^$/d' | sort | uniq >"${FILE}.tags"
+    done
+}
+
 case "${MODE}" in
     "${MODE_BUILD}") do_build_cache ;;
     "${MODE_SEARCH}") do_search ;;
+    "${MODE_MODIFY}") do_modify_tags ;;
     '*') printf "[E]: Unknown mode\n" >&2
          exit 1 ;;
 esac
