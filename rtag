@@ -262,7 +262,7 @@ do_search() { # {{{
     done
 } # }}}
 
-do_modify_tags() {
+do_modify_tags() { # {{{
     local FILE
 
     IFS="${_TB}"
@@ -285,7 +285,7 @@ do_modify_tags() {
 
         printf "%s" "${FILE_TAGS}" | sed '/^$/d' | sort | uniq >"${FILE}.tags"
     done
-}
+} # }}}
 
 case "${MODE}" in
     "${MODE_BUILD}") do_build_cache ;;
