@@ -6,6 +6,7 @@ set -eu
 _TB="$(printf "\t")"
 _NL="$(printf "\nx")"
 _NL="${_NL%x}"
+_FS="$(printf "\034")"
 
 IFS=
 
