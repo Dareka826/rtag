@@ -6,7 +6,6 @@ set -eu
 _TB="$(printf "\t")"
 _NL="$(printf "\nx")"
 _NL="${_NL%x}"
-_FS="$(printf "\034")"
 
 IFS=
 
@@ -70,14 +69,14 @@ do_search_include_tag() { # {{{
     switch_mode "${MODE_SEARCH}"
 
     local TAG="${1}"
-    SEARCH_INCLUDE_TAGS="${SEARCH_INCLUDE_TAGS}${TAG}${_FS}"
+    SEARCH_INCLUDE_TAGS="${SEARCH_INCLUDE_TAGS}${TAG}${_TB}"
 } # }}}
 
 do_search_exclude_tag() { # {{{
     switch_mode "${MODE_SEARCH}"
 
     local TAG="${1}"
-    SEARCH_EXCLUDE_TAGS="${SEARCH_EXCLUDE_TAGS}${TAG}${_FS}"
+    SEARCH_EXCLUDE_TAGS="${SEARCH_EXCLUDE_TAGS}${TAG}${_TB}"
 } # }}}
 
 do_search_include_tags() { # {{{
@@ -181,13 +180,13 @@ do_search() {
     local CACHE="$(sed -e 's/$/\t/' <"${SEARCH_CACHE_FILE}")"
 
     local INC_TAG
-    IFS="${_FS}"
+    IFS="${_TB}"
     for INC_TAG in ${SEARCH_INCLUDE_TAGS}; do
         CACHE="$(printf "%s\n" "${CACHE}" | grep -F "${_TB}${INC_TAG}${_TB}")"
     done
 
     local EXC_TAG
-    IFS="${_FS}"
+    IFS="${_TB}"
     for EXC_TAG in ${SEARCH_EXCLUDE_TAGS}; do
         CACHE="$(printf "%s\n" "${CACHE}" | grep -Fv "${_TB}${EXC_TAG}${_TB}")"
     done
