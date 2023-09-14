@@ -16,7 +16,9 @@ Each line of the cache file contains the following:
 
 ## Usage
 
-Specifying files:
+### Modifying tags:
+
+Specify files:
 
 ```
 -file <file>
@@ -26,7 +28,7 @@ Specifying files:
 -fm <file1> <file2> --
 ```
 
-Adding tags:
+Add tags:
 
 ```
 -tag some_tag
@@ -36,7 +38,7 @@ Adding tags:
 -tm some_tag1 some_tag2
 ```
 
-Removing tags:
+Remove tags:
 
 ```
 -del_tag some_tag
@@ -46,7 +48,7 @@ Removing tags:
 -dm some_tag1 some_tag2
 ```
 
-Cache creation (for search):
+### Build cache for searching:
 
 ```
 -build_cache <root_dir>
@@ -54,7 +56,7 @@ Cache creation (for search):
 -b <root_dir>
 ```
 
-Searching:
+### Searching:
 
 ```
 -cache_file <file>
@@ -62,12 +64,12 @@ Searching:
 -include_multiple tag_in1 tag_in2 --
 -exclude tag_ex
 -exclude_multiple tag_ex1 tag_ex2 --
--file_list
+-show_tags
 
 -c <file>
 -i tag_in
 -im tag_in1 tag_in2 --
 -e tag_ex
 -em tag_ex1 tag_ex2 --
--l
+-s
 ```
