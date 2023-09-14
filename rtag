@@ -1,6 +1,8 @@
 #!/bin/sh
 set -eu
 
+. ./xparse/xparse.sh
+
 _TB="$(printf "\t")"
 _NL="$(printf "\nx")"
 _NL="${_NL%x}"
@@ -37,6 +39,9 @@ build_cache() {
         done
 }
 
-# TODO: Remove
-ROOT_DIR="/home/rin/repos/rtag/test_data"
-build_cache "${ROOT_DIR}"
+do_build_cache() { build_cache "${1}"; }
+
+xparse_add_option  "build_cache"  1  do_build_cache
+xparse_add_option  "b"            1  do_build_cache
+
+xparse_execute_args "$@"
