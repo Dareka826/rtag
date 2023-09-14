@@ -21,18 +21,21 @@ build_cache() {
     # I think the above assumptions are reasonable, but they can always be
     # escaped later if needed.
 
-    local FILE
+    local TAGS_FILE
     IFS=
 
     find "${ROOT_DIR}" -iname '*.tags' -size '+0' | \
         sed -e 's/\\/\\\\/g' \
             -e 's/\t/\\t/g' | \
-        while read -r FILE; do
+        while read -r TAGS_FILE; do
+            local FILE="${TAGS_FILE%.tags}"
+            [ -e "${FILE}" ] || continue
+
             # Filename
-            printf "${FILE%.tags}\t"
+            printf "%s\t" "${FILE}"
 
             # Tags separated with tabs
-            cat "${FILE}" | \
+            cat "${TAGS_FILE}" | \
                 sed -e '/^$/d' | \
                 tr '\n' '\t' | \
                 sed -e 's/\t$/\n/'
