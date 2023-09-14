@@ -9,6 +9,8 @@ _NL="${_NL%x}"
 
 IFS=
 
+## Modes {{{
+
 MODE=""
 MODE_BUILD="build"
 MODE_SEARCH="search"
@@ -24,6 +26,10 @@ switch_mode() { # {{{
     MODE="${NEW_MODE}"
 } # }}}
 
+# }}}
+
+## Command parameters {{{
+
 BUILD_ROOT_DIR=""
 
 SEARCH_CACHE_FILE=""
@@ -34,6 +40,8 @@ SEARCH_SHOW_TAGS="0"
 MODIFY_FILES=""
 MODIFY_ADD_TAGS=""
 MODIFY_DEL_TAGS=""
+
+# }}}
 
 ## Utils {{{
 
@@ -206,7 +214,6 @@ xparse_add_option  "dm"       '*' do_modify_remove_tags
 
 xparse_execute_args "$@"
 
-# Args: root dir
 do_build_cache() { # {{{
     # Assumptions:
     # - filenames DON'T contain newlines
