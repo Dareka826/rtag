@@ -2,7 +2,7 @@
 
 WARNING: Project is not functional yet
 
-The aim of this project is to create a tagging system that's easy to work with when synchronizing subdirectories and doesn't rely on filesystem-specific features.
+The aim of this project is to create a tagging system that's easy to work with when synchronizing subdirectories and doesn't rely on filesystem-specific features. And also one that's easy to edit by hand when you don't have the script available.
 
 ## Cache format
 
