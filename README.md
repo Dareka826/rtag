@@ -64,6 +64,7 @@ Remove tags:
 -exclude tag_ex
 -exclude_multiple tag_ex1 tag_ex2 --
 -show_tags
+-temp_cache <root_dir>
 
 -c <file>
 -i tag_in
@@ -71,4 +72,7 @@ Remove tags:
 -e tag_ex
 -em tag_ex1 tag_ex2 --
 -s
+-tc <root_dir>
 ```
+
+Note: the use of temp_cache is not recommended as it has to be reconstructed every time.
