@@ -10,6 +10,21 @@ _FS="$(printf "\034")"
 
 IFS=
 
+MODE=""
+MODE_BUILD="build"
+MODE_SEARCH="search"
+
+switch_mode() {
+    # {{{
+    local NEW_MODE="${1}"
+    if [ -n "${MODE}" ] && [ "${MODE}" != "${NEW_MODE}" ]; then
+        printf "[E]: Can't switch operation mode!\n" >&2
+        exit 1
+    fi
+
+    MODE="${NEW_MODE}"
+} # }}}
+
 SEARCH_CACHE_FILE=""
 SEARCH_INCLUDE_TAGS=""
 SEARCH_EXCLUDE_TAGS=""
@@ -48,25 +63,36 @@ build_cache() {
         done
 } # }}}
 
-do_build_cache() { build_cache "${1}"; }
+do_build_cache() {
+    switch_mode "${MODE_BUILD}"
+    build_cache "${1}"
+}
 
 do_search_set_cache_file() {
+    switch_mode "${MODE_SEARCH}"
+
     local FILE="${1}"
     [ -e "${FILE}" ] || exit 1
     SEARCH_CACHE_FILE="${FILE}"
 }
 
 do_search_include_tag() {
+    switch_mode "${MODE_SEARCH}"
+
     local TAG="${1}"
     SEARCH_INCLUDE_TAGS="${SEARCH_INCLUDE_TAGS}${TAG}${_FS}"
 }
 
 do_search_exclude_tag() {
+    switch_mode "${MODE_SEARCH}"
+
     local TAG="${1}"
     SEARCH_EXCLUDE_TAGS="${SEARCH_EXCLUDE_TAGS}${TAG}${_FS}"
 }
 
 do_search_include_tags() {
+    switch_mode "${MODE_SEARCH}"
+
     local TAG
     for TAG in "$@"; do
         do_search_include_tag "${TAG}"
@@ -74,6 +100,8 @@ do_search_include_tags() {
 }
 
 do_search_exclude_tags() {
+    switch_mode "${MODE_SEARCH}"
+
     local TAG
     for TAG in "$@"; do
         do_search_exclude_tag "${TAG}"
@@ -133,3 +161,9 @@ do_search() {
 
     printf "%s\n" "${CACHE}" | sed -e 's/\t$//'
 }
+
+case "${MODE}" in
+    "${MODE_SEARCH}") do_search ;;
+    '*') printf "[E]: Unknown mode\n" >&2
+         exit 1 ;;
+esac
