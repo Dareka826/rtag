@@ -144,8 +144,7 @@ xparse_add_option  "dm"       '*' do_remove_tags
 xparse_execute_args "$@"
 
 # Args: root dir
-build_cache() {
-    # {{{
+build_cache() { # {{{
     local ROOT_DIR="${1}"
 
     # Assumptions:
@@ -176,7 +175,8 @@ build_cache() {
         done
 } # }}}
 
-do_search() {
+do_search() { # {{{
+
     local CACHE="$(sed -e 's/$/\t/' <"${SEARCH_CACHE_FILE}")"
 
     local INC_TAG
@@ -201,7 +201,7 @@ do_search() {
             printf "%s\t%s\n" "${FILE}" "${TAGS}"
         fi
     done
-}
+} # }}}
 
 case "${MODE}" in
     "${MODE_BUILD}") build_cache "${BUILD_ROOT_DIR}" ;;
