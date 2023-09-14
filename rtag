@@ -148,7 +148,7 @@ xparse_add_option  "dm"       '*' do_remove_tags
 xparse_execute_args "$@"
 
 # Args: root dir
-build_cache() { # {{{
+do_build_cache() { # {{{
     # Assumptions:
     # - filenames DON'T contain newlines
     # - tags DON'T contain tabs
@@ -204,7 +204,7 @@ do_search() { # {{{
 } # }}}
 
 case "${MODE}" in
-    "${MODE_BUILD}") build_cache ;;
+    "${MODE_BUILD}") do_build_cache ;;
     "${MODE_SEARCH}") do_search ;;
     '*') printf "[E]: Unknown mode\n" >&2
          exit 1 ;;
