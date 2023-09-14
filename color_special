@@ -1,0 +1,11 @@
+#!/bin/sh
+set -eu
+
+RESET="$(printf "\033[0m")"
+
+COLOR_ORANGE="$(printf "\033[33m")"
+  COLOR_BLUE="$(printf "\033[34m")"
+
+sed -e 's/\t/'"${COLOR_ORANGE}"'\\t'"${RESET}"'/g' | \
+    tr '\n' '\t' | \
+    sed -e 's/\t/'"${COLOR_BLUE}"'\\n'"${RESET}"'\n/g'
