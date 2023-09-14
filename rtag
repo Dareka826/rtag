@@ -28,6 +28,7 @@ switch_mode() {
 SEARCH_CACHE_FILE=""
 SEARCH_INCLUDE_TAGS=""
 SEARCH_EXCLUDE_TAGS=""
+SEARCH_FILE_LIST="0"
 
 escape_path() {
     sed -e 's/\\/\\\\/g' \
@@ -117,6 +118,12 @@ do_search_exclude_tags() {
     done
 }
 
+do_search_file_list() {
+    switch_mode "${MODE_SEARCH}"
+
+    SEARCH_FILE_LIST="1"
+}
+
 # Cache
 xparse_add_option  "build_cache"  1  do_build_cache
 xparse_add_option  "b"            1  do_build_cache
@@ -132,6 +139,8 @@ xparse_add_option  "exclude"           1  do_search_exclude_tag
 xparse_add_option  "e"                 1  do_search_exclude_tag
 xparse_add_option  "exclude_multiple" '*' do_search_exclude_tags
 xparse_add_option  "em"               '*' do_search_exclude_tags
+xparse_add_option  "file_list"         0  do_search_file_list
+xparse_add_option  "l"                 0  do_search_file_list
 
 # File selection
 xparse_add_option  "file"   1  do_select_file
@@ -168,7 +177,15 @@ do_search() {
         CACHE="$(printf "%s\n" "${CACHE}" | grep -Fv "${_TB}${EXC_TAG}${_TB}")"
     done
 
-    printf "%s\n" "${CACHE}" | sed -e 's/\t$//'
+    printf "%s\n" "${CACHE}" | while read -r FILE TAGS; do
+        FILE="$(printf "%s" "${FILE}" | unescape_path)"
+
+        if [ "${SEARCH_FILE_LIST}" = "0" ]; then
+            printf "%s\t%s\n" "${FILE}" "${TAGS}"
+        else
+            printf "%s\n" "${FILE}"
+        fi
+    done
 }
 
 case "${MODE}" in

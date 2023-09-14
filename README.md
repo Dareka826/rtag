@@ -59,10 +59,12 @@ Searching:
 -include_multiple tag_in1 tag_in2 --
 -exclude tag_ex
 -exclude_multiple tag_ex1 tag_ex2 --
+-file_list
 
 -c <file>
 -i tag_in
 -im tag_in1 tag_in2 --
 -e tag_ex
 -em tag_ex1 tag_ex2 --
+-l
 ```
