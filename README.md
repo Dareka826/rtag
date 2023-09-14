@@ -13,6 +13,7 @@ Each line of the cache file contains the following:
 
 - The file path ('\' and '\t' are escaped)
 - The file tags separated by '\t'
+- A '\t' at the end of line for easier grepping
 
 ## Usage
 
