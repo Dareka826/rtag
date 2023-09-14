@@ -29,15 +29,13 @@ build_cache() {
             -e 's/\t/\\t/g' | \
         while read -r FILE; do
             # Filename
-            printf "${FILE%.tags}"
+            printf "${FILE%.tags}\t"
 
             # Tags separated with tabs
             cat "${FILE}" | \
-                sed -e 's/^/\t/' \
-                    -e ':loop' \
-                    -e 'N' \
-                    -e 's/\n/\t/g' \
-                    -e 't loop'
+                sed -e '/^$/d' | \
+                tr '\n' '\t' | \
+                sed -e 's/\t$/\n/'
         done
 }
 
