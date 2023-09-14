@@ -10,6 +10,10 @@ _FS="$(printf "\034")"
 
 IFS=
 
+SEARCH_CACHE_FILE=""
+SEARCH_INCLUDE_TAGS=""
+SEARCH_EXCLUDE_TAGS=""
+
 # Args: root dir
 build_cache() {
     # {{{
@@ -46,6 +50,36 @@ build_cache() {
 
 do_build_cache() { build_cache "${1}"; }
 
+do_search_set_cache_file() {
+    local FILE="${1}"
+    [ -e "${FILE}" ] || exit 1
+    SEARCH_CACHE_FILE="${FILE}"
+}
+
+do_search_include_tag() {
+    local TAG="${1}"
+    SEARCH_INCLUDE_TAGS="${SEARCH_INCLUDE_TAGS}${TAG}${_FS}"
+}
+
+do_search_exclude_tag() {
+    local TAG="${1}"
+    SEARCH_EXCLUDE_TAGS="${SEARCH_EXCLUDE_TAGS}${TAG}${_FS}"
+}
+
+do_search_include_tags() {
+    local TAG
+    for TAG in "$@"; do
+        do_search_include_tag "${TAG}"
+    done
+}
+
+do_search_exclude_tags() {
+    local TAG
+    for TAG in "$@"; do
+        do_search_exclude_tag "${TAG}"
+    done
+}
+
 # Cache
 xparse_add_option  "build_cache"  1  do_build_cache
 xparse_add_option  "b"            1  do_build_cache
@@ -81,3 +115,21 @@ xparse_add_option  "del_tags" '*' do_remove_tags
 xparse_add_option  "dm"       '*' do_remove_tags
 
 xparse_execute_args "$@"
+
+do_search() {
+    local CACHE="$(sed -e 's/$/\t/' <"${SEARCH_CACHE_FILE}")"
+
+    local INC_TAG
+    IFS="${_FS}"
+    for INC_TAG in ${SEARCH_INCLUDE_TAGS}; do
+        CACHE="$(printf "%s\n" "${CACHE}" | grep -F "${_TB}${INC_TAG}${_TB}")"
+    done
+
+    local EXC_TAG
+    IFS="${_FS}"
+    for EXC_TAG in ${SEARCH_EXCLUDE_TAGS}; do
+        CACHE="$(printf "%s\n" "${CACHE}" | grep -Fv "${_TB}${EXC_TAG}${_TB}")"
+    done
+
+    printf "%s\n" "${CACHE}" | sed -e 's/\t$//'
+}
