@@ -30,7 +30,7 @@ SEARCH_INCLUDE_TAGS=""
 SEARCH_EXCLUDE_TAGS=""
 SEARCH_SHOW_TAGS="0"
 
-# Utils {{{
+## Utils {{{
 
 escape_path() { # {{{
     sed -e 's/\\/\\\\/g' \
@@ -44,7 +44,7 @@ unescape_path() { # {{{
 
 # }}}
 
-# Build {{{
+## Build {{{
 
 do_build_set_root_dir() { # {{{
     switch_mode "${MODE_BUILD}"
@@ -55,7 +55,7 @@ do_build_set_root_dir() { # {{{
 
 # }}}
 
-# Search {{{
+## Search {{{
 
 do_search_set_cache_file() { # {{{
     switch_mode "${MODE_SEARCH}"
@@ -105,6 +105,8 @@ do_search_show_tags() { # {{{
 
 # }}}
 
+## Options {{{
+
 # Cache
 xparse_add_option  "build_cache"  1  do_build_set_root_dir
 xparse_add_option  "b"            1  do_build_set_root_dir
@@ -140,6 +142,8 @@ xparse_add_option  "del_tag"   1  do_remove_tag
 xparse_add_option  "d"         1  do_remove_tag
 xparse_add_option  "del_tags" '*' do_remove_tags
 xparse_add_option  "dm"       '*' do_remove_tags
+
+## }}}
 
 xparse_execute_args "$@"
 
