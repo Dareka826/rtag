@@ -158,9 +158,9 @@ do_build_cache() { # {{{
     # escaped later if needed.
 
     local TAGS_FILE
-    IFS=
 
-    find "${BUILD_ROOT_DIR}" -iname '*.tags' -size '+0' | \
+    find "${BUILD_ROOT_DIR}" -iname '*.tags' -size '+0' | (\
+        IFS=
         while read -r TAGS_FILE; do
             local FILE="${TAGS_FILE%.tags}"
             [ -e "${FILE}" ] || continue
@@ -173,7 +173,7 @@ do_build_cache() { # {{{
                 sed -e '/^$/d' | \
                 tr '\n' '\t' | \
                 sed -e 's/^/\t/' -e 's/$/\n/'
-        done
+        done)
 } # }}}
 
 do_search() { # {{{
