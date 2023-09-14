@@ -11,6 +11,7 @@ IFS=
 
 # Args: root dir
 build_cache() {
+    # {{{
     local ROOT_DIR="${1}"
 
     # Assumptions:
@@ -40,7 +41,7 @@ build_cache() {
                 tr '\n' '\t' | \
                 sed -e 's/\t$/\n/'
         done
-}
+} # }}}
 
 do_build_cache() { build_cache "${1}"; }
 
