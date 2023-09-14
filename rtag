@@ -38,6 +38,7 @@ SEARCH_CACHE_FILE=""
 SEARCH_INCLUDE_TAGS=""
 SEARCH_EXCLUDE_TAGS=""
 SEARCH_SHOW_TAGS="0"
+SEARCH_USE_TEMP_CACHE="0"
 
 MODIFY_FILES=""
 MODIFY_ADD_TAGS=""
@@ -116,6 +117,15 @@ do_search_show_tags() { # {{{
     switch_mode "${MODE_SEARCH}"
 
     SEARCH_SHOW_TAGS="1"
+} # }}}
+
+do_search_use_temp_cache() { # {{{
+    switch_mode "${MODE_SEARCH}"
+
+    [ -e "${1}" ] || exit 1
+    BUILD_ROOT_DIR="${1}"
+
+    SEARCH_USE_TEMP_CACHE="1"
 } # }}}
 
 # }}}
@@ -197,6 +207,8 @@ xparse_add_option  "exclude_multiple" '*' do_search_exclude_tags
 xparse_add_option  "em"               '*' do_search_exclude_tags
 xparse_add_option  "show_tags"         0  do_search_show_tags
 xparse_add_option  "s"                 0  do_search_show_tags
+xparse_add_option  "temp_cache"        1  do_search_use_temp_cache
+xparse_add_option  "tc"                1  do_search_use_temp_cache
 
 # Modify
 xparse_add_option  "file"      1  do_modify_select_file
@@ -245,7 +257,13 @@ do_build_cache() { # {{{
 } # }}}
 
 do_search() { # {{{
-    local CACHE="$(cat "${SEARCH_CACHE_FILE}")"
+    local CACHE
+
+    if [ "${SEARCH_USE_TEMP_CACHE}" = "0" ]; then
+        CACHE="$(cat "${SEARCH_CACHE_FILE}")"
+    else
+        CACHE="$(do_build_cache)"
+    fi
 
     local INC_TAG
     IFS="${_TB}"
